@@ -48,6 +48,9 @@ public class Manga implements Serializable {
     private String author;
 
     private String publisher;
+    @OneToMany(mappedBy = "manga")
+    private List<Character> characters;
+
     @Builder.Default
     @ManyToMany
     @JoinTable(joinColumns = @JoinColumn(name = "manga_id",
@@ -58,6 +61,11 @@ public class Manga implements Serializable {
     )
     private List<Category> categories = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "wishList", fetch = FetchType.EAGER)
+    private List<User> listaDeDeseos;
 
-
+    public void addCharacter(Character character) {
+        characters.add(character);
+        character.setManga(this);
+    }
 }

@@ -1,16 +1,17 @@
 package com.salesianos.triana.backend.Animangav4.service;
 
-import com.salesianos.triana.backend.Animangav4.dtos.CreateMangaDto;
-import com.salesianos.triana.backend.Animangav4.dtos.GetMangaDto;
-import com.salesianos.triana.backend.Animangav4.dtos.MangaDtoConverter;
+import com.salesianos.triana.backend.Animangav4.dtos.*;
 import com.salesianos.triana.backend.Animangav4.exception.EmptyMangaListException;
 import com.salesianos.triana.backend.Animangav4.exception.EntityNotFoundException;
+import com.salesianos.triana.backend.Animangav4.exception.ExceptionFav;
 import com.salesianos.triana.backend.Animangav4.exception.ForbiddenException;
 import com.salesianos.triana.backend.Animangav4.models.Category;
+import com.salesianos.triana.backend.Animangav4.models.Character;
 import com.salesianos.triana.backend.Animangav4.models.Manga;
 import com.salesianos.triana.backend.Animangav4.models.User;
 import com.salesianos.triana.backend.Animangav4.models.UserRole;
 import com.salesianos.triana.backend.Animangav4.repository.CategoryRepository;
+import com.salesianos.triana.backend.Animangav4.repository.CharacterRepository;
 import com.salesianos.triana.backend.Animangav4.repository.MangaRepository;
 import com.salesianos.triana.backend.Animangav4.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,8 @@ public class MangaService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
 
-
+    private final CharacterDtoConverter characterDtoConverter;
+    private final CharacterRepository characterRepository;
     public Manga save(CreateMangaDto createMangaDto, MultipartFile file, User user) {
         Optional<User> u = userRepository.findById(user.getId());
         if (u.isEmpty()) {
@@ -101,5 +103,72 @@ public class MangaService {
         } else {
             return list.map(mangaDtoConverter::mangaToGetMangaDto);
         }
+    }
+
+    public Manga addMangaToWishList(UUID idManga, User user){
+        Optional<User> u = userRepository.findById(user.getId());
+        if(u.isEmpty()) {
+            throw new EntityNotFoundException(user.getId().toString(), User.class);
+        } else {
+            Optional<Manga> m = mangaRepository.findById(idManga);
+            if(m.isEmpty()) {
+                throw new EntityNotFoundException(idManga.toString(), Book.class);
+            } else {
+                if(!m.get().getListaDeDeseos().contains(u.get())){
+                    u.get().addMangaToWishList(m.get());
+                    return mangaRepository.save(m.get());
+                }else{
+                    throw new ExceptionFav("El manga ya esta añadido en la lista de deseos");
+                }
+            }
+        }
+    }
+    public void removeMangaFromWishList(UUID idManga, User user){
+        Optional<User> u = userRepository.findById(user.getId());
+        if(u.isEmpty()) {
+            throw new EntityNotFoundException(user.getId().toString(), User.class);
+        } else {
+            Optional<Manga> m = mangaRepository.findById(idManga);
+            if(m.isEmpty()) {
+                throw new EntityNotFoundException(idManga.toString(), Manga.class);
+            } else {
+                if(m.get().getListaDeDeseos().contains(u.get())){
+                    u.get().removeMangaFromWishList(m.get());
+                    mangaRepository.save(m.get());
+                }else{
+                    throw new ExceptionFav("El manga no se encuentra en la lista de deseos");
+                }
+            }
+        }
+    }
+
+    public boolean isFavorite(UUID idManga, User user){
+        Optional<User> u = userRepository.findById(user.getId());
+        if(u.isEmpty()) {
+            throw new EntityNotFoundException(user.getId().toString(), User.class);
+        } else {
+            return  mangaRepository.existsByIdInWishList(idManga, u.get());
+        }
+    }
+
+    public Manga addCharacterToManga(UUID idManga, CharacterDto characterDto) {
+        // Buscamos el manga por su ID
+        Optional<Manga> optionalManga = mangaRepository.findById(idManga);
+        if (optionalManga.isEmpty()) {
+            throw new EntityNotFoundException(idManga.toString(), Manga.class);
+        }
+        Manga manga = optionalManga.get();
+
+        // Convertimos el DTO del personaje a una entidad
+        Character character = characterDtoConverter.characterDtoToEntity(characterDto);
+
+        // Agregamos el personaje al manga
+        manga.getCharacters().add(character);
+        character.setManga(manga);
+
+        // Guardamos los cambios en la base de datos
+        mangaRepository.save(manga);
+
+        return manga;
     }
 }
