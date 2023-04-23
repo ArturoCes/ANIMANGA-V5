@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-@Table(name = "carts")
+git pull@Table(name = "carts")
 public class Cart {
 
     @Id
