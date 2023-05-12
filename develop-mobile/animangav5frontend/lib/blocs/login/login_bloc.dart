@@ -26,8 +26,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           .signInWithEmailAndPassword(event.loginDto);
       if (user != null) {
         box.write('token', user.token);
+        box.write('name', user.fullName);
         box.write('image', user.image);
-        box.write('idUser',user.username);
+        box.write('idUser', user.username);
         emit(LoginSuccess());
       }
     } on LoginError catch (err) {
