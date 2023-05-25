@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:animangav4frontend/blocs/characters/bloc/character_bloc.dart';
 import 'package:animangav4frontend/blocs/manga/bloc/manga_bloc.dart';
 import 'package:animangav4frontend/models/manga.dart';
 import 'package:animangav4frontend/pages/error_page.dart';
@@ -19,6 +20,7 @@ class MangaPage extends StatefulWidget {
 class _MangaPageState extends State<MangaPage> {
   late MangasService mangasService;
   late MangaBloc _mangaBloc;
+  late CharacterBloc _characterBloc;
   final box = GetStorage();
   bool _isCharacters = true;
   bool _isFavorite = false;
@@ -27,6 +29,7 @@ class _MangaPageState extends State<MangaPage> {
   void initState() {
     mangasService = GetIt.instance<MangaService>();
     _mangaBloc = MangaBloc(mangasService)..add(FetchManga());
+    _characterBloc = CharacterBloc(mangasService)..add(FetchCharacters(box.read('idManga')));
     super.initState();
   }
 
@@ -65,125 +68,138 @@ class _MangaPageState extends State<MangaPage> {
   Widget _createBody(BuildContext context) {
     return BlocBuilder<MangaBloc, MangaState>(
       bloc: _mangaBloc,
-      builder: (context, state) {
-        if (state is MangaInitial) {
+      builder: (context, mangaState) {
+        if (mangaState is MangaInitial) {
           return const Center(child: CircularProgressIndicator());
-        } else if (state is MangaFetchError) {
+        } else if (mangaState is MangaFetchError) {
           return ErrorPage(
-            message: state.message,
+            message: mangaState.message,
             retry: () {
               context.watch<MangaBloc>().add(const FetchManga());
             },
           );
-        } else if (state is MangaFetched) {
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                buildOne(context, state.manga),
-                SizedBox(height: 20),
-                Visibility(
-                  visible: _isCharacters,
+        } else if (mangaState is MangaFetched) {
+          return BlocBuilder<CharacterBloc, CharacterState>(
+            bloc: _characterBloc,
+            builder: (context, characterState) {
+              if (characterState is CharactersIsLoadinng) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (characterState is CharactersFetched) {
+                return SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Personajes",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      buildOne(context, mangaState.manga),
+                      SizedBox(height: 20),
+                      Visibility(
+                        visible: _isCharacters,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Personajes",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Container(
+                              height: 200,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: characterState.characters.characters.length,
+                                itemBuilder: (context, index) {
+                                  final character =
+                                      characterState.characters.characters[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Container(
+                                          width: 120,
+                                          height: 150,
+                                          decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                              fit: BoxFit.cover,
+                                              image: NetworkImage(
+                                                  character.name.toString()),
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        SizedBox(height: 10),
+                                        Text(
+                                          character.name.toString(),
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 5),
+                                        Text(
+                                          character.description.toString(),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(height: 10),
-                      Container(
-                        height: 200,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 5,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment
-                                    .spaceEvenly, // Añadido para evitar el desbordamiento
-                                children: [
-                                  Container(
-                                    width: 120,
-                                    height: 150,
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        fit: BoxFit.cover,
-                                        image: NetworkImage(
-                                          "https://static.wikia.nocookie.net/jujutsu-kaisen/images/e/e7/Yuji_Itadori_-_Dise%C3%B1o_de_personaje_03.png/revision/latest?cb=20200919192002&path-prefix=es",
-                                        ),
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
+                      Visibility(
+                        visible: !_isCharacters,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Puntuación",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    color: Colors.blue,
                                   ),
-                                  SizedBox(height: 10),
-                                  Text(
-                                    "Personaje $index",
+                                  padding: EdgeInsets.all(10),
+                                  child: Text(
+                                    mangaState.manga.name.toString(),
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
+                                      color: Colors.white,
                                     ),
                                   ),
-                                  SizedBox(height: 5),
-                                  Text(
-                                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-                Visibility(
-                  visible: !_isCharacters,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Puntuación",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: Colors.blue,
-                            ),
-                            padding: EdgeInsets.all(10),
-                            child: Text(
-                              "8.7",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                );
+              } else {
+                return const Text('No se pudo cargar los personajes');
+              }
+            },
           );
         } else {
           return const Text('No se pudo cargar el manga');

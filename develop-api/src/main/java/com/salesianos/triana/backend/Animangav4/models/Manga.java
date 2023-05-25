@@ -59,5 +59,6 @@ public class Manga implements Serializable {
     private List<Category> categories = new ArrayList<>();
 
 
-
+    @OneToMany(mappedBy = "manga", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Character> characters = new ArrayList<>();
 }

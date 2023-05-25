@@ -1,9 +1,11 @@
 package com.salesianos.triana.backend.Animangav4.controller;
 
 
+import com.salesianos.triana.backend.Animangav4.dtos.CharacterDto;
 import com.salesianos.triana.backend.Animangav4.dtos.CreateMangaDto;
 import com.salesianos.triana.backend.Animangav4.dtos.GetMangaDto;
 import com.salesianos.triana.backend.Animangav4.dtos.MangaDtoConverter;
+import com.salesianos.triana.backend.Animangav4.models.Character;
 import com.salesianos.triana.backend.Animangav4.models.Manga;
 import com.salesianos.triana.backend.Animangav4.models.User;
 import com.salesianos.triana.backend.Animangav4.service.MangaService;
@@ -27,6 +29,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -124,5 +127,16 @@ public class MangaController {
     public ResponseEntity<?> delete(@PathVariable UUID id){
         mangaService.deleteManga(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+
+    @GetMapping("/{id}/characters")
+    public ResponseEntity<List<CharacterDto>> getAllCharactersFromManga(@PathVariable UUID id) {
+        List<CharacterDto> characters = mangaService.findAllCharactersByMangaId(id);
+        if (characters != null) {
+            return ResponseEntity.ok(characters);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

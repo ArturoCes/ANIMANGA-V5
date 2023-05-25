@@ -33,3 +33,6 @@ INSERT INTO categories(manga_id, category_id)VALUES ('ac1b039a866e153381866e298c
 INSERT INTO categories(manga_id, category_id)VALUES ('ac1b039a866e153381866e298c1d0008','ac1b039a866e153381866e298c1d0002');
 INSERT INTO categories(manga_id, category_id)VALUES ('ac1b039a866e153381866e298c1d0013','ac1b039a866e153381866e298c1d0002');
 INSERT INTO categories(manga_id, category_id)VALUES ('ac1b039a866e153381866e298c1d0014','ac1b039a866e153381866e298c1d0002');
+
+INSERT INTO characters (id, name,age, description, manga_id) VALUES('ac1b039a866e153381866e298c1d0016', 'Yuji Itadori', '19','Yuji es el prota','ac1b039a866e153381866e298c1d0010');
+INSERT INTO characters (id, name,age, description, manga_id) VALUES('ac1b039a866e153381866e298c1d0017', 'Megumi', '19','Yuji es el amigo del  prota','ac1b039a866e153381866e298c1d0010');

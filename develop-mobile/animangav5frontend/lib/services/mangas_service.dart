@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:animangav4frontend/models/character.dart';
 import 'package:animangav4frontend/models/manga.dart';
 import 'package:animangav4frontend/repositories/mangasRepository.dart';
 import 'package:get_it/get_it.dart';
@@ -11,6 +12,7 @@ import 'localstorage_service.dart';
 abstract class MangasService {
   Future<MangaResponse> findAll(int startIndex);
   Future<Manga> findMangaById(String id);
+  Future<CharacterResponse>findCharactersByMangaId(String id);
 }
 
 //@Singleton(as: AuthenticationService)
@@ -46,4 +48,13 @@ class MangaService extends MangasService {
       throw Exception('Error al cargar los Mangas');
     }
   }
+
+  @override
+  Future<CharacterResponse> findCharactersByMangaId(String id) async {
+  dynamic response = await _mangasRepository.findCharactersByMangaId(id);
+  
+    return response;
+ 
+}
+
 }

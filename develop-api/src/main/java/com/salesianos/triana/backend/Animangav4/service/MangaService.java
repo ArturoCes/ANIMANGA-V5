@@ -1,12 +1,11 @@
 package com.salesianos.triana.backend.Animangav4.service;
 
-import com.salesianos.triana.backend.Animangav4.dtos.CreateMangaDto;
-import com.salesianos.triana.backend.Animangav4.dtos.GetMangaDto;
-import com.salesianos.triana.backend.Animangav4.dtos.MangaDtoConverter;
+import com.salesianos.triana.backend.Animangav4.dtos.*;
 import com.salesianos.triana.backend.Animangav4.exception.EmptyMangaListException;
 import com.salesianos.triana.backend.Animangav4.exception.EntityNotFoundException;
 import com.salesianos.triana.backend.Animangav4.exception.ForbiddenException;
 import com.salesianos.triana.backend.Animangav4.models.Category;
+import com.salesianos.triana.backend.Animangav4.models.Character;
 import com.salesianos.triana.backend.Animangav4.models.Manga;
 import com.salesianos.triana.backend.Animangav4.models.User;
 import com.salesianos.triana.backend.Animangav4.models.UserRole;
@@ -24,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +34,8 @@ public class MangaService {
     private final MangaDtoConverter mangaDtoConverter;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+
+    private final CharacterDtoConverter characterDtoConverter;
 
 
     public Manga save(CreateMangaDto createMangaDto, MultipartFile file, User user) {
@@ -100,6 +102,16 @@ public class MangaService {
             throw new EmptyMangaListException(Manga.class);
         } else {
             return list.map(mangaDtoConverter::mangaToGetMangaDto);
+        }
+    }
+    public List<CharacterDto> findAllCharactersByMangaId(UUID id) {
+        Manga manga = mangaRepository.findById(id).orElse(null);
+        if (manga != null) {
+            return manga.getCharacters().stream()
+                    .map(character -> characterDtoConverter.entityToDto(character))
+                    .collect(Collectors.toList());
+        } else {
+            return null;
         }
     }
 }

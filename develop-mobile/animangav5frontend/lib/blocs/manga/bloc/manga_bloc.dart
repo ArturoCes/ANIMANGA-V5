@@ -24,4 +24,5 @@ class MangaBloc extends Bloc<MangaEvent, MangaState> {
       emit(MangaFetchError(e.toString()));
     }
   }
+  
 }

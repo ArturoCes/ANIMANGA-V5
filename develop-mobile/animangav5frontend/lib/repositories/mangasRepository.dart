@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'package:animangav4frontend/models/character.dart';
+import 'package:animangav4frontend/models/manga.dart';
 import 'package:animangav4frontend/rest/rest_client.dart';
 import 'package:get_it/get_it.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart';
 import 'package:injectable/injectable.dart';
 
-import '../models/manga.dart';
 
 @Order(-1)
 @singleton
@@ -35,4 +37,17 @@ class MangasRepository {
     var jsonResponse = await _client.get(url, headers: headers);
     return Manga.fromJson(jsonDecode(jsonResponse));
   }
+
+  Future<dynamic> findCharactersByMangaId(String id) async {
+    String url = "/manga/${id}/characters";
+    Map<String, String> headers = {
+      'Authorization': 'Bearer ${box.read('token')}'
+    };
+    
+    var jsonResponse = await _client.get(url, headers: headers);
+    return CharacterResponse.fromJson(jsonDecode(jsonResponse));
+  }
+
+
+ 
 }
