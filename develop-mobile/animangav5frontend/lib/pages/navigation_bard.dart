@@ -63,7 +63,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white, //BARRA BLANCA
+        backgroundColor: Colors.transparent,
+        extendBody: true, //BARRA TRANSPARENTE :D
         body: WillPopScope(onWillPop: _onWillPop, child: pages[_currentIndex]),
         bottomNavigationBar: _buildBottomBar());
   }

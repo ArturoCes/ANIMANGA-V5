@@ -8,6 +8,7 @@ import com.salesianos.triana.backend.Animangav4.dtos.MangaDtoConverter;
 import com.salesianos.triana.backend.Animangav4.models.Character;
 import com.salesianos.triana.backend.Animangav4.models.Manga;
 import com.salesianos.triana.backend.Animangav4.models.User;
+import com.salesianos.triana.backend.Animangav4.service.CharacterService;
 import com.salesianos.triana.backend.Animangav4.service.MangaService;
 import com.salesianos.triana.backend.Animangav4.utils.PaginationLinksUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,6 +42,8 @@ public class MangaController {
     private final MangaService mangaService;
     private final MangaDtoConverter mangaDtoConverter;
     private final PaginationLinksUtils paginationLinksUtils;
+
+    private final CharacterService characterService;
     @Operation(summary = "Listar todos los mangas")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
@@ -129,14 +132,39 @@ public class MangaController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    //TODO terminar de hacer los favoritos
+   /* @Operation(summary = "Agregar a favoritos")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Agrega un manga a la lista de favoritos del usuario",
+                    content = {@Content(mediaType = "aplication/json",
+                            schema = @Schema(implementation = Manga.class))}),
+            @ApiResponse(responseCode = "404",
+                    description = "No se encontro el manga",
+                    content = @Content),
+    })
+    @PostMapping("/favorite/{id}")
+    public ResponseEntity<GetMangaDto> addFavorite(@PathVariable UUID id,
+                                                      @AuthenticationPrincipal User user) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(mangaDtoConverter.mangaToGetMangaDto(mangaService.addFavorite(id, user)));
+    }*/
 
     @GetMapping("/{id}/characters")
-    public ResponseEntity<List<CharacterDto>> getAllCharactersFromManga(@PathVariable UUID id) {
-        List<CharacterDto> characters = mangaService.findAllCharactersByMangaId(id);
-        if (characters != null) {
-            return ResponseEntity.ok(characters);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Page<CharacterDto>> getAllCharactersFromManga(
+            @PathVariable UUID id,
+            @PageableDefault(size = 10, page = 0) Pageable pageable,
+            @AuthenticationPrincipal User user,
+            @NotNull HttpServletRequest request) {
+        Page<CharacterDto> characters = characterService.findAllCharactersByMangaId(id, pageable);
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(request.getRequestURL().toString());
+        return ResponseEntity.ok().header("link", paginationLinksUtils.createLinkHeader(characters, uriBuilder)).body(characters);
     }
+
+    //TODO pintar todos los mangas separados por categoria
+
+
+
+
+
 }

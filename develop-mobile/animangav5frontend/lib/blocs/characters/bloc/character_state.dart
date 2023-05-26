@@ -1,9 +1,9 @@
 part of 'character_bloc.dart';
 
-abstract class CharacterState extends Equatable{
+abstract class CharacterState extends Equatable {
   const CharacterState();
 
-   @override
+  @override
   List<Object> get props => [];
 }
 
@@ -15,7 +15,7 @@ class CharactersFetched extends CharacterState {
   CharactersFetched({required this.characters});
 }
 
-class CharactersIsLoadinng extends CharacterState{}
+class CharactersIsLoadinng extends CharacterState {}
 
 class CharacterFetchError extends CharacterState {
   final ErrorResponse error;

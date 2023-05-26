@@ -1,9 +1,12 @@
 class Category {
-  String? id;
-  String? name;
-  String? description;
-
-  Category({this.id, this.name, this.description});
+  Category({
+    required this.id,
+    required this.name,
+    required this.description,
+  });
+  late final String id;
+  late final String name;
+  late final String description;
 
   Category.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -12,10 +15,10 @@ class Category {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    return data;
+    final _data = <String, dynamic>{};
+    _data['id'] = id;
+    _data['name'] = name;
+    _data['description'] = description;
+    return _data;
   }
 }

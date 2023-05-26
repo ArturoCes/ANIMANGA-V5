@@ -29,7 +29,8 @@ class _MangaPageState extends State<MangaPage> {
   void initState() {
     mangasService = GetIt.instance<MangaService>();
     _mangaBloc = MangaBloc(mangasService)..add(FetchManga());
-    _characterBloc = CharacterBloc(mangasService)..add(FetchCharacters(box.read('idManga')));
+    _characterBloc = CharacterBloc(mangasService)
+      ..add(FetchCharacters(box.read('idManga')));
     super.initState();
   }
 
@@ -108,10 +109,11 @@ class _MangaPageState extends State<MangaPage> {
                               height: 200,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
-                                itemCount: characterState.characters.characters.length,
+                                itemCount:
+                                    characterState.characters.numberOfElements,
                                 itemBuilder: (context, index) {
                                   final character =
-                                      characterState.characters.characters[index];
+                                      characterState.characters.content[index];
                                   return Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Column(
@@ -125,7 +127,7 @@ class _MangaPageState extends State<MangaPage> {
                                             image: DecorationImage(
                                               fit: BoxFit.cover,
                                               image: NetworkImage(
-                                                  character.name.toString()),
+                                                  ('https://static.wikia.nocookie.net/manga/images/0/08/Megumi_Fushiguro.png/revision/latest?cb=20210513134458&path-prefix=es')),
                                             ),
                                             borderRadius:
                                                 BorderRadius.circular(10),

@@ -95,6 +95,46 @@ public class MangaService {
         }
     }
 
+    //TODO Terminar añadir y quitar favoritos para poder pintarlos.
+/*    public Book addFavorite(UUID idManga, User user){
+        Optional<User> u = userRepository.findById(user.getId());
+        if(u.isEmpty()) {
+            throw new EntityNotFoundException(user.getId().toString(), User.class);
+        } else {
+            Optional<Manga> m = mangaRepository.findById(idManga);
+            if(m.isEmpty()) {
+                throw new EntityNotFoundException(idManga.toString(), Manga.class);
+            } else {
+                if(!m.get().getUsersMangafavorite().contains(u.get())){
+                    u.get().addFavorite(m.get());
+                    return mangaRepository.save(m.get());
+                }else{
+                    throw new FavoriteException("El manga ya esta marcado como favorito");
+                }
+            }
+        }
+    }*/
+
+    /*public void removeFavorite(UUID idManga, User user){
+        Optional<User> u = userRepository.findById(user.getId());
+        if(u.isEmpty()) {
+            throw new EntityNotFoundException(user.getId().toString(), User.class);
+        } else {
+            Optional<Manga> m = mangaRepository.findById(idManga);
+            if(b.isEmpty()) {
+                throw new EntityNotFoundException(idManga.toString(), Manga.class);
+            } else {
+                if(m.get().getUsersMangafavorite().contains(u.get())){
+                    u.get().removeFavorite(m.get());
+                    mangaRepository.save(m.get());
+                }else{
+                    throw new FavoriteException("El manga no esta marcado como favorito");
+                }
+            }
+        }
+    }*/
+
+
     public Page<GetMangaDto> findAllMangas(Pageable pageable) {
         Page<Manga> list= mangaRepository.findAll(pageable);
 
@@ -104,14 +144,4 @@ public class MangaService {
             return list.map(mangaDtoConverter::mangaToGetMangaDto);
         }
     }
-    public List<CharacterDto> findAllCharactersByMangaId(UUID id) {
-        Manga manga = mangaRepository.findById(id).orElse(null);
-        if (manga != null) {
-            return manga.getCharacters().stream()
-                    .map(character -> characterDtoConverter.entityToDto(character))
-                    .collect(Collectors.toList());
-        } else {
-            return null;
-        }
-    }
-}
+ }
