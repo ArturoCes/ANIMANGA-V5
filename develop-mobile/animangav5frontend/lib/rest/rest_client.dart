@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:animangav4frontend/models/login_error.dart';
+import 'package:animangav4frontend/models/manga.dart';
 import 'package:animangav4frontend/models/user.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http_interceptor/http_interceptor.dart';
@@ -70,6 +71,22 @@ class RestClient {
     }
   }
 
+   Future<dynamic> post2(String url,
+      {required Map<String, String> headers}) async {
+
+
+    try {
+      Uri uri = Uri.parse(ApiConstants.baseUrl + url);
+      print(uri.toString());
+
+      final response = await _httpClient.post(uri, headers: headers);
+      var responseJson = _response(response);
+      return responseJson;
+    } on SocketException catch (ex) {
+      throw FetchDataException('No internet connection: ${ex.message}');
+    }
+  }
+
   Future<dynamic> multipartRequest(String url, dynamic body) async {
     Map<String, String> headers = {
       'Content-Type': 'multipart/form-data',
@@ -98,6 +115,35 @@ class RestClient {
       throw error;
     }
   }
+    Future<dynamic> multipartRequestGeneric(String url, dynamic body,String nameBody) async {
+    Map<String, String> headers = {
+      'Content-Type': 'multipart/form-data',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer ${box.read('token')}'
+    };
+
+    Uri uri = Uri.parse(ApiConstants.baseUrl + url);
+    print(uri.toString());
+
+    final request = http.MultipartRequest('POST', uri);
+    request.files.add(http.MultipartFile.fromString(
+      '${nameBody}',
+      jsonEncode(body.toJson()),
+      contentType: MediaType('application', 'json'),
+      filename: "${nameBody}",
+    ));
+    request.headers.addAll(headers);
+    var res = await request.send();
+    final response = await res.stream.bytesToString();
+    if (res.statusCode == 200) {
+      MangaResponse manga = MangaResponse.fromJson(json.decode(response));
+      return manga;
+    } else {
+      final error = ErrorResponse.fromJson(json.decode(response));
+      throw error;
+    }
+  }
+
 
   Future<dynamic> multipartRequestFile(
       String url, String filename, String tipo) async {

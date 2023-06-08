@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:animangav4frontend/blocs/characters/bloc/character_bloc.dart';
 import 'package:animangav4frontend/blocs/manga/bloc/manga_bloc.dart';
+import 'package:animangav4frontend/blocs/manga_favorite/manga_favorite_bloc.dart';
 import 'package:animangav4frontend/models/manga.dart';
 import 'package:animangav4frontend/pages/error_page.dart';
 import 'package:animangav4frontend/rest/rest.dart';
@@ -18,7 +19,7 @@ class MangaPage extends StatefulWidget {
 }
 
 class _MangaPageState extends State<MangaPage> {
-  late MangasService mangasService;
+  late MangaService mangaService;
   late MangaBloc _mangaBloc;
   late CharacterBloc _characterBloc;
   final box = GetStorage();
@@ -27,10 +28,11 @@ class _MangaPageState extends State<MangaPage> {
 
   @override
   void initState() {
-    mangasService = GetIt.instance<MangaService>();
-    _mangaBloc = MangaBloc(mangasService)..add(FetchManga());
-    _characterBloc = CharacterBloc(mangasService)
+    mangaService = GetIt.instance<MangaService>();
+    _mangaBloc = MangaBloc(mangaService)..add(FetchManga());
+    _characterBloc = CharacterBloc(mangaService)
       ..add(FetchCharacters(box.read('idManga')));
+
     super.initState();
   }
 
@@ -45,6 +47,8 @@ class _MangaPageState extends State<MangaPage> {
     return MultiBlocProvider(
       providers: [
         BlocProvider<MangaBloc>.value(value: _mangaBloc),
+        BlocProvider(create: (context) => MangaFavoriteBloc(mangaService)),
+        
       ],
       child: Scaffold(
         backgroundColor: Color.fromARGB(255, 249, 249, 249),
@@ -126,8 +130,7 @@ class _MangaPageState extends State<MangaPage> {
                                           decoration: BoxDecoration(
                                             image: DecorationImage(
                                               fit: BoxFit.cover,
-                                              image: NetworkImage(
-                                                  ('https://static.wikia.nocookie.net/manga/images/0/08/Megumi_Fushiguro.png/revision/latest?cb=20210513134458&path-prefix=es')),
+                                              image: NetworkImage('kewkas.jpg'),
                                             ),
                                             borderRadius:
                                                 BorderRadius.circular(10),
@@ -135,7 +138,7 @@ class _MangaPageState extends State<MangaPage> {
                                         ),
                                         SizedBox(height: 10),
                                         Text(
-                                          character.name.toString(),
+                                          character.name,
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
@@ -143,7 +146,7 @@ class _MangaPageState extends State<MangaPage> {
                                         ),
                                         SizedBox(height: 5),
                                         Text(
-                                          character.description.toString(),
+                                          character.description,
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             fontSize: 12,
@@ -182,7 +185,7 @@ class _MangaPageState extends State<MangaPage> {
                                   ),
                                   padding: EdgeInsets.all(10),
                                   child: Text(
-                                    mangaState.manga.name.toString(),
+                                    mangaState.manga.name,
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -208,6 +211,74 @@ class _MangaPageState extends State<MangaPage> {
         }
       },
     );
+  }
+
+  Widget favorite(context) {
+    if (box.read("favorite")) {
+      return InkWell(
+        onTap: () {
+          setState(() {
+            _isFavorite = box.read("favorite");
+          });
+             BlocProvider.of<MangaFavoriteBloc>(context)
+            .add(const RemoveMangaFavorite());
+            Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(pageBuilder: (_, __, ___) => const MangaPage()),
+              );   
+        },
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade400,
+                shape: BoxShape.circle,
+              ),
+              width: 40, // Ajusta el tamaño del círculo
+              height: 40, // Ajusta el tamaño del círculo
+            ),
+            Icon(
+              Icons.favorite,
+              color: Colors.purple,
+              size: 24, // Ajusta el tamaño del ícono del corazón
+            ),
+          ],
+        ),
+      );
+    } else {
+      return InkWell(
+        onTap: () {
+          setState(() {
+            _isFavorite = box.read("favorite");
+          });
+          BlocProvider.of<MangaFavoriteBloc>(context)
+              .add(const AddMangaFavorite());
+           Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(pageBuilder: (_, __, ___) => const MangaPage()),
+              );    
+        },
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade400,
+                shape: BoxShape.circle,
+              ),
+              width: 40, // Ajusta el tamaño del círculo
+              height: 40, // Ajusta el tamaño del círculo
+            ),
+            Icon(
+              Icons.favorite,
+              color: Colors.white,
+              size: 24, // Ajusta el tamaño del ícono del corazón
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Widget buildOne(BuildContext context, Manga manga) {
@@ -248,32 +319,7 @@ class _MangaPageState extends State<MangaPage> {
                 Text('Nombre de la obra: ' + manga.name,
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      _isFavorite = !_isFavorite;
-                    });
-                    //llamada api aqui
-                  },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade400,
-                          shape: BoxShape.circle,
-                        ),
-                        width: 40, // Ajusta el tamaño del círculo
-                        height: 40, // Ajusta el tamaño del círculo
-                      ),
-                      Icon(
-                        Icons.favorite,
-                        color: _isFavorite ? Colors.purple : Colors.white,
-                        size: 24, // Ajusta el tamaño del ícono del corazón
-                      ),
-                    ],
-                  ),
-                ),
+                favorite(context)
               ],
             ),
             Text('Descripción: ' + manga.description,

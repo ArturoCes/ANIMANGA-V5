@@ -1,6 +1,8 @@
+import 'package:animangav4frontend/pages/mangas_favorites_page.dart';
 import 'package:animangav4frontend/pages/pages.dart';
 import 'package:animangav4frontend/pages/password_page.dart';
 import 'package:animangav4frontend/pages/profile_page.dart';
+import 'package:animangav4frontend/pages/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'config/locator.dart';
@@ -34,6 +36,9 @@ class MyApp extends StatelessWidget {
           '/detail': (context) => const MangaPage(),
           '/changepassword': (context) => const PasswordPage(),
           '/profile': (context) => const ProfilePage(),
+          '/favorite': (context) => const FavoritesPage(),
+          '/search':(context) => const SearchScreen(),
         });
   }
 }
+ 

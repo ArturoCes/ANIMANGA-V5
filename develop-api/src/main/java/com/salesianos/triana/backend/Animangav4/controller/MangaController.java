@@ -1,13 +1,13 @@
 package com.salesianos.triana.backend.Animangav4.controller;
 
 
-import com.salesianos.triana.backend.Animangav4.dtos.CharacterDto;
-import com.salesianos.triana.backend.Animangav4.dtos.CreateMangaDto;
-import com.salesianos.triana.backend.Animangav4.dtos.GetMangaDto;
-import com.salesianos.triana.backend.Animangav4.dtos.MangaDtoConverter;
+import com.salesianos.triana.backend.Animangav4.dtos.*;
+import com.salesianos.triana.backend.Animangav4.models.Category;
 import com.salesianos.triana.backend.Animangav4.models.Character;
 import com.salesianos.triana.backend.Animangav4.models.Manga;
 import com.salesianos.triana.backend.Animangav4.models.User;
+import com.salesianos.triana.backend.Animangav4.repository.CategoryRepository;
+import com.salesianos.triana.backend.Animangav4.service.CategoryService;
 import com.salesianos.triana.backend.Animangav4.service.CharacterService;
 import com.salesianos.triana.backend.Animangav4.service.MangaService;
 import com.salesianos.triana.backend.Animangav4.utils.PaginationLinksUtils;
@@ -30,7 +30,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -41,9 +43,12 @@ import java.util.UUID;
 public class MangaController {
     private final MangaService mangaService;
     private final MangaDtoConverter mangaDtoConverter;
+
+    private final CategoryRepository categoryRepository;
     private final PaginationLinksUtils paginationLinksUtils;
 
     private final CharacterService characterService;
+
     @Operation(summary = "Listar todos los mangas")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
@@ -55,9 +60,9 @@ public class MangaController {
                     content = @Content),
     })
     @GetMapping("/all")
-    public ResponseEntity<Page<GetMangaDto>> findAllMangas (@PageableDefault(size = 10, page = 0) Pageable pageable,
-                                                            @AuthenticationPrincipal User user,
-                                                            @NotNull HttpServletRequest request) {
+    public ResponseEntity<Page<GetMangaDto>> findAllMangas(@PageableDefault(size = 10, page = 0) Pageable pageable,
+                                                           @AuthenticationPrincipal User user,
+                                                           @NotNull HttpServletRequest request) {
         Page<GetMangaDto> list = mangaService.findAllMangas(pageable);
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(request.getRequestURL().toString());
         return ResponseEntity.ok().header("link", paginationLinksUtils.createLinkHeader(list, uriBuilder)).body(list);
@@ -75,11 +80,12 @@ public class MangaController {
     })
     @PostMapping("/new")
     public ResponseEntity<GetMangaDto> createManga(@Valid @RequestPart("manga") CreateMangaDto c,
-                                                 @RequestPart("file") MultipartFile file,
-                                                 @AuthenticationPrincipal User user) {
+                                                   @RequestPart("file") MultipartFile file,
+                                                   @AuthenticationPrincipal User user) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mangaDtoConverter.mangaToGetMangaDto(mangaService.save(c, file, user)));
     }
+
     @Operation(summary = "Obtener un manga")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
@@ -109,9 +115,9 @@ public class MangaController {
                     content = @Content),
     })
     @PutMapping("/{id}")
-    public GetMangaDto editManga(@Valid @RequestPart("manga")CreateMangaDto c,
-                               @AuthenticationPrincipal User user,
-                               @PathVariable UUID id) {
+    public GetMangaDto editManga(@Valid @RequestPart("manga") CreateMangaDto c,
+                                 @AuthenticationPrincipal User user,
+                                 @PathVariable UUID id) {
         return mangaDtoConverter.mangaToGetMangaDto(mangaService.editManga(c, user, id));
     }
 
@@ -127,13 +133,13 @@ public class MangaController {
                     content = @Content),
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable UUID id){
+    public ResponseEntity<?> delete(@PathVariable UUID id) {
         mangaService.deleteManga(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     //TODO terminar de hacer los favoritos
-   /* @Operation(summary = "Agregar a favoritos")
+    @Operation(summary = "Agregar a favoritos")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
                     description = "Agrega un manga a la lista de favoritos del usuario",
@@ -145,10 +151,66 @@ public class MangaController {
     })
     @PostMapping("/favorite/{id}")
     public ResponseEntity<GetMangaDto> addFavorite(@PathVariable UUID id,
-                                                      @AuthenticationPrincipal User user) {
+                                                   @AuthenticationPrincipal User user) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mangaDtoConverter.mangaToGetMangaDto(mangaService.addFavorite(id, user)));
-    }*/
+    }
+
+    @Operation(summary = "Listar todos los mangas favoritos de un usuario")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Se devuelve una lista con todos los mangas favoritos del usuario",
+                    content = {@Content(mediaType = "aplication/json",
+                            schema = @Schema(implementation = Manga.class))}),
+            @ApiResponse(responseCode = "404",
+                    description = "La lista esta vacia",
+                    content = @Content),
+    })
+    @GetMapping("/all/favorite/{username}")
+    public ResponseEntity<Page<GetMangaDto>> findAllFavoriteMangas(@PageableDefault(size = 10, page = 0) Pageable pageable,
+                                                                   HttpServletRequest request,
+                                                                   @PathVariable String username) {
+        Page<GetMangaDto> lista = mangaService.findAllFavoriteMangas(username, pageable);
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(request.getRequestURL().toString());
+        return ResponseEntity.ok().header("link", paginationLinksUtils.createLinkHeader(lista, uriBuilder)).body(lista);
+    }
+
+    @Operation(summary = "Eliminar de favoritos")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Elimina un manga a la lista de favoritos del usuario",
+                    content = {@Content(mediaType = "aplication/json",
+                            schema = @Schema(implementation = User.class))}),
+            @ApiResponse(responseCode = "404",
+                    description = "No se encontro el libro",
+                    content = @Content),
+    })
+    @PostMapping("/favorite/remove/{id}")
+    public ResponseEntity<GetMangaDto> removeFavoriteBook(@PathVariable UUID id,
+                                                          @AuthenticationPrincipal User user) {
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(mangaDtoConverter.mangaToGetMangaDto(mangaService.removeFavorite(id, user)));
+    }
+
+    @Operation(summary = "Comprobar si un manga es favorito")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Si el manga esta en la lista de favoritos del usuario",
+                    content = {@Content(mediaType = "aplication/json",
+                            schema = @Schema(implementation = Manga.class))}),
+            @ApiResponse(responseCode = "404",
+                    description = "No se encontro el manga",
+                    content = @Content),
+    })
+    @GetMapping("/favorite/bool/{id}")
+    public DtoFavorite isFavoriteManga(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        DtoFavorite f = DtoFavorite.builder()
+                .favorito(mangaService.isFavorite(id, user))
+                .build();
+        return f;
+    }
+
 
     @GetMapping("/{id}/characters")
     public ResponseEntity<Page<CharacterDto>> getAllCharactersFromManga(
@@ -164,7 +226,34 @@ public class MangaController {
     //TODO pintar todos los mangas separados por categoria
 
 
+    @GetMapping("/all/categories/{name}")
+    public ResponseEntity<Page<GetMangaDto>> findAllMangasByCategories(@PathVariable String name, @PageableDefault(size = 10, page = 0) Pageable pageable,
+                                                                       @AuthenticationPrincipal User user,
+                                                                       @NotNull HttpServletRequest request) {
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(request.getRequestURL().toString());
 
+        Page<GetMangaDto> mangas =   mangaService.findAllMangasByCategory(name, pageable).map(mangaDtoConverter::mangaToGetMangaDto);
 
+        return ResponseEntity.ok().header("link", paginationLinksUtils.createLinkHeader(mangas, uriBuilder)).body(mangas);
+    }
+
+    @Operation(summary = "Buscar manga")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Devuelve una lista con los mangas que coincidan en el nombre",
+                    content = {@Content(mediaType = "aplication/json",
+                            schema = @Schema(implementation = Manga.class))}),
+            @ApiResponse(responseCode = "404",
+                    description = "La lista esta vacia",
+                    content = @Content),
+    })
+    @PostMapping("/search/all")
+    public ResponseEntity<Page<GetMangaDto>> findByName (@RequestPart("search") SearchDto searchDto,
+                                                        @PageableDefault(size = 10, page = 0) Pageable pageable,
+                                                        HttpServletRequest request) {
+        Page<GetMangaDto> lista = mangaService.findByName(searchDto.getName(), pageable);
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(request.getRequestURL().toString());
+        return ResponseEntity.ok().header("link", paginationLinksUtils.createLinkHeader(lista, uriBuilder)).body(lista);
+    }
 
 }

@@ -1,11 +1,8 @@
 package com.salesianos.triana.backend.Animangav4.service;
 
 import com.salesianos.triana.backend.Animangav4.dtos.*;
-import com.salesianos.triana.backend.Animangav4.exception.EmptyMangaListException;
-import com.salesianos.triana.backend.Animangav4.exception.EntityNotFoundException;
-import com.salesianos.triana.backend.Animangav4.exception.ForbiddenException;
+import com.salesianos.triana.backend.Animangav4.exception.*;
 import com.salesianos.triana.backend.Animangav4.models.Category;
-import com.salesianos.triana.backend.Animangav4.models.Character;
 import com.salesianos.triana.backend.Animangav4.models.Manga;
 import com.salesianos.triana.backend.Animangav4.models.User;
 import com.salesianos.triana.backend.Animangav4.models.UserRole;
@@ -19,11 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.print.Book;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
+
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +26,7 @@ public class MangaService {
     private final MangaRepository mangaRepository;
     private final StorageService storageService;
     private final MangaDtoConverter mangaDtoConverter;
+    private final UserService userService;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
 
@@ -44,7 +39,7 @@ public class MangaService {
             throw new EntityNotFoundException(user.getId().toString(), User.class);
         } else {
             String uri = storageService.store(file);
-         //   uri = storageService.uriComplete(uri);
+            //   uri = storageService.uriComplete(uri);
             Manga m = mangaDtoConverter.createMangaDtoToManga(createMangaDto, uri);
             List<Category> list = new ArrayList<>();
             for (Category c : createMangaDto.getCategories()) {
@@ -56,6 +51,16 @@ public class MangaService {
         }
     }
 
+    public Page<GetMangaDto> findByName (String name, Pageable pageable) {
+        Page<Manga> lista = mangaRepository.findByNameIgnoreCaseContains(name, pageable);
+
+        if(lista.isEmpty()) {
+            throw new ListNotFoundException(Manga.class);
+        } else {
+            return lista.map(mangaDtoConverter::mangaToGetMangaDto);
+
+        }
+    }
     public Manga findById(UUID id) {
         return mangaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(id.toString(), Manga.class));
@@ -96,47 +101,62 @@ public class MangaService {
     }
 
     //TODO Terminar añadir y quitar favoritos para poder pintarlos.
-/*    public Book addFavorite(UUID idManga, User user){
+    public Manga addFavorite(UUID idManga, User user) {
         Optional<User> u = userRepository.findById(user.getId());
-        if(u.isEmpty()) {
+        if (u.isEmpty()) {
             throw new EntityNotFoundException(user.getId().toString(), User.class);
         } else {
             Optional<Manga> m = mangaRepository.findById(idManga);
-            if(m.isEmpty()) {
+            if (m.isEmpty()) {
                 throw new EntityNotFoundException(idManga.toString(), Manga.class);
             } else {
-                if(!m.get().getUsersMangafavorite().contains(u.get())){
-                    u.get().addFavorite(m.get());
+                if (!m.get().getUsersMangaFavorite().contains(u.get())) {
+                    u.get().addMangaFavorite(m.get());
                     return mangaRepository.save(m.get());
-                }else{
+                } else {
                     throw new FavoriteException("El manga ya esta marcado como favorito");
                 }
             }
         }
-    }*/
+    }
 
-    /*public void removeFavorite(UUID idManga, User user){
+    public Manga removeFavorite(UUID idManga, User user) {
         Optional<User> u = userRepository.findById(user.getId());
-        if(u.isEmpty()) {
+        if (u.isEmpty()) {
             throw new EntityNotFoundException(user.getId().toString(), User.class);
         } else {
             Optional<Manga> m = mangaRepository.findById(idManga);
-            if(b.isEmpty()) {
+            if (m.isEmpty()) {
                 throw new EntityNotFoundException(idManga.toString(), Manga.class);
             } else {
-                if(m.get().getUsersMangafavorite().contains(u.get())){
-                    u.get().removeFavorite(m.get());
-                    mangaRepository.save(m.get());
-                }else{
+                if (m.get().getUsersMangaFavorite().contains(u.get())) {
+                    u.get().removeMangaFavorite(m.get());
+                    return mangaRepository.save(m.get());
+                } else {
                     throw new FavoriteException("El manga no esta marcado como favorito");
                 }
             }
         }
-    }*/
+    }
+    public Page<GetMangaDto> findAllFavoriteMangas (String username, Pageable pageable) {
+        Optional<User> u1 = userService.findByUsername(username);
+
+        if(u1.isEmpty()) {
+            throw new EntityNotFound("No se pudo encontrar el usuario con nick: "+ username );
+        } else {
+            Page<Manga> lista = mangaRepository.findByUsersMangaFavorite(u1.get(), pageable);
+
+            if(lista.isEmpty()) {
+                throw new ListNotFoundException(Manga.class);
+            } else {
+                return lista.map(mangaDtoConverter::mangaToGetMangaDto);
+            }
+        }
+    }
 
 
     public Page<GetMangaDto> findAllMangas(Pageable pageable) {
-        Page<Manga> list= mangaRepository.findAll(pageable);
+        Page<Manga> list = mangaRepository.findAll(pageable);
 
         if (list.isEmpty()) {
             throw new EmptyMangaListException(Manga.class);
@@ -144,4 +164,22 @@ public class MangaService {
             return list.map(mangaDtoConverter::mangaToGetMangaDto);
         }
     }
- }
+
+    public boolean isFavorite(UUID idManga, User user){
+        Optional<User> u = userRepository.findById(user.getId());
+        if(u.isEmpty()) {
+            throw new EntityNotFoundException(user.getId().toString(), User.class);
+        } else {
+            return  mangaRepository.existsByIdAndUsersMangaFavorite(idManga, u.get());
+        }
+    }
+
+    public Page<Manga> findAllMangasByCategory(String name, Pageable pageable) {
+
+        return mangaRepository.findByCategoryName(name, pageable);
+
+
+
+    }
+
+}

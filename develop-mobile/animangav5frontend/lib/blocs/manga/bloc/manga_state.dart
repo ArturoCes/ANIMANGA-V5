@@ -11,9 +11,10 @@ class MangaInitial extends MangaState {}
 
 class MangaFetched extends MangaState {
   final Manga manga;
+  final FavoriteResponse favoriteResponse;
   
 
-  const MangaFetched(this.manga);
+  const MangaFetched(this.manga, this.favoriteResponse);
 
   @override
   List<Object> get props => [manga];

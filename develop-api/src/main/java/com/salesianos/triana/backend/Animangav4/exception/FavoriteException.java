@@ -1,6 +1,8 @@
 package com.salesianos.triana.backend.Animangav4.exception;
 
-public class FavoriteException {
+public class FavoriteException extends BadRequestException{
 
-    //TODO hacer esta excepción
+    public FavoriteException(String message) {
+        super(message);
+    }
 }

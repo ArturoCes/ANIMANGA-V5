@@ -61,4 +61,7 @@ public class Manga implements Serializable {
 
     @OneToMany(mappedBy = "manga", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Character> characters = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "favoritos", fetch = FetchType.EAGER)
+    private List<User> usersMangaFavorite;
 }

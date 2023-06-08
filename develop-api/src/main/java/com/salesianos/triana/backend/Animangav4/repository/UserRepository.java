@@ -18,4 +18,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT u.email FROM User u WHERE u.username = :username")
     String existsEmailWithUsername(String username);
+
+
 }

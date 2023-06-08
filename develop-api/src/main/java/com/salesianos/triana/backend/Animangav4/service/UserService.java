@@ -40,7 +40,9 @@ public class UserService {
     public User createUserWithUserRole(CreateUserDto createUserRequest) {
         return createUser(createUserRequest, UserRole.USER);
     }
-
+    public Optional<User> findFirstByUsername(String username) {
+        return userRepository.findFirstByUsername(username);
+    }
     public User createUserWithAdminRole(CreateUserDto createUserRequest) {
         return createUser(createUserRequest, UserRole.ADMIN);
     }

@@ -39,7 +39,11 @@ public class Character implements Serializable {
     private Integer age;
 
     private String description;
+
+    private String imageUrl;
     @ManyToOne
     @JoinColumn(name = "manga_id", foreignKey = @ForeignKey(name = "FK_CHARACTER_MANGA"))
     private Manga manga;
+
+
 }

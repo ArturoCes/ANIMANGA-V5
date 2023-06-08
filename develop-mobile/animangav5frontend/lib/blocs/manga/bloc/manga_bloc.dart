@@ -1,3 +1,4 @@
+import 'package:animangav4frontend/models/favoriteDto.dart';
 import 'package:animangav4frontend/models/manga.dart';
 import 'package:animangav4frontend/services/mangas_service.dart';
 import 'package:bloc/bloc.dart';
@@ -18,7 +19,10 @@ class MangaBloc extends Bloc<MangaEvent, MangaState> {
   void _MangaFetched(FetchManga event, Emitter<MangaState> emit) async {
     try {
       final manga = await _mangasService.findMangaById(box.read("idManga"));
-      emit(MangaFetched(manga));
+      final mangaFav = await _mangasService.isMangaFavorite(box.read("idManga"));
+
+      box.write("favorite",mangaFav.favorito);
+      emit(MangaFetched(manga,mangaFav));
       return;
     } on Exception catch (e) {
       emit(MangaFetchError(e.toString()));
