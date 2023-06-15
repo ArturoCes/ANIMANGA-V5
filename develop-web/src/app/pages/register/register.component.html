@@ -1,0 +1,58 @@
+<div class="contenedor">
+  <div class="logo">
+    <img src="../../../assets/img/logoAnimanga.png" width="200px" alt="Logo">
+  </div>
+  <form [formGroup]="formulario" class="example-form">
+
+    <mat-card class="card">
+      <h1 class="titulo">Crear una cuenta</h1>
+      <mat-form-field appearance="outline" class="field-width">
+        <mat-label>Nombre de usuario</mat-label>
+        <input matInput placeholder="Introduzca su nombre de usuario" name="username" formControlName="username" required>
+      </mat-form-field>
+      <div *ngIf="formulario.controls['username'].dirty || formulario.controls['username'].touched" class="alert alert-danger">
+        <div class="validador" *ngIf="formulario.get('username')?.hasError('required')">
+          El nombre de usuario es requerido
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="field-width">
+        <mat-label>Nombre</mat-label>
+        <input matInput placeholder="Introduzca su nombre" name="fullName" formControlName="fullName">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field-width">
+        <mat-label>Email</mat-label>
+        <input matInput placeholder="Introduzca su email" name="email" formControlName="email" required>
+      </mat-form-field>
+      <div *ngIf="formulario.controls['email'].dirty || formulario.controls['email'].touched" class="alert alert-danger">
+        <div class="validador" *ngIf="formulario.get('email')?.hasError('required')">
+          El email es requerido
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="field-width">
+        <mat-label>Contraseña</mat-label>
+        <input type="password" matInput placeholder="Introduzca su contraseña" id="password" formControlName="password">
+      </mat-form-field>
+      <div *ngIf="formulario.controls['password'].dirty || formulario.controls['password'].touched" class="alert alert-danger">
+        <div class="validador" *ngIf="formulario.get('password')?.hasError('required')">
+          La contraseña es requerida
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="field-width">
+        <mat-label>Confirmar contraseña</mat-label>
+        <input type="password" matInput placeholder="Repita su contraseña" id="password2" formControlName="passwordVerify">
+      </mat-form-field>
+      <div *ngIf="formulario.controls['passwordVerify'].dirty || formulario.controls['passwordVerify'].touched" class="alert alert-danger">
+        <div class="validador" *ngIf="formulario.get('passwordVerify')?.hasError('required')">
+          La contraseña es requerida
+        </div>
+      </div>
+
+      <button mat-raised-button color="primary" class="button-style" (click)="registrarse()">Registrarse</button>
+    </mat-card>
+    <p class="sub" [routerLink]="['/login']">¿Tienes cuenta? Inicia sesión</p>
+  </form>
+</div>

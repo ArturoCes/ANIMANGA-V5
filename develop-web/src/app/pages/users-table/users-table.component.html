@@ -1,0 +1,69 @@
+<section class="main-container">
+  <form [formGroup]="formulario">
+  <h1 class="title-pages">Usuarios</h1>
+
+    <div class="h1-table-options">
+        <div class="alinear">
+            <div class="search-box">
+                <button class="btn-search"><img src="../../../assets/img/search.svg"></button>
+                <input (change)="buscar()" formControlName="texto" type="text" class="input-search" placeholder="Buscar">
+            </div>
+            <mat-form-field appearance="outline">
+              <mat-label>Roles</mat-label>
+              <mat-select (selectionChange)="buscar()" formControlName="role" name="role">
+                <mat-option ></mat-option>
+                <mat-option  value="ADMIN">Admin</mat-option>
+                <mat-option value="USER">User</mat-option>
+              </mat-select>
+            </mat-form-field>
+        </div>
+    </div>
+  </form>
+
+<table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+  <!-- Position Column -->
+
+
+  <ng-container matColumnDef="username">
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Username </th>
+    <td colspan="2" mat-cell *matCellDef="let element"> {{element.username}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="fullName">
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Nombre </th>
+    <td colspan="2" mat-cell *matCellDef="let element"> {{element.fullName}} </td>
+  </ng-container>
+
+
+
+  <ng-container matColumnDef="email" >
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Email </th>
+    <td colspan="2" mat-cell *matCellDef="let element"> {{element.email}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="avatar">
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Avatar </th>
+    <td colspan="2" mat-cell *matCellDef="let element">{{element.image}}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="role">
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Rol </th>
+    <td colspan="2" mat-cell *matCellDef="let element"> {{element.role}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="acciones">
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Acciones </th>
+    <td colspan="2" mat-cell *matCellDef="let element">
+      <button mat-button (click)="editarUsuario(element)" matTooltip="Editar usuario"><mat-icon>edit</mat-icon></button>
+      <button mat-button *ngIf="element.role=='USER'" (click)="admin(element)" matTooltip="Dar rol admin"><mat-icon>add_moderator</mat-icon></button>
+      <button mat-button *ngIf="element.role=='ADMIN'" (click)="admin(element)" matTooltip="Quitar rol admin"><mat-icon>remove_moderator</mat-icon></button>
+    </td>
+
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
+
+<mat-paginator class="mat-elevation-z8 mat-paginator" [pageSizeOptions]="[5, 10, 15]" [pageSize]="5" [length]="totalElements" (page)="nextPage($event)"  showFirstLastButtons></mat-paginator>
+</section>

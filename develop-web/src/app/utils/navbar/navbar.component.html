@@ -1,0 +1,9 @@
+<mat-nav-list class="app-menu">
+  <ng-container *ngFor="let element of listAux" class="elemento">
+      <ng-container >
+          <a mat-list-item (click)="seleccionar(element)" [ngStyle]="{'background-color': (element.name==select) ? '#4C0B8E' : '#621BA8'}" routerLinkActive="active-link">
+              <img [src]="'assets/img/' + element.icon" ><span  class="ml1 ">{{element.name}}</span>
+          </a>
+      </ng-container>
+  </ng-container>
+</mat-nav-list>

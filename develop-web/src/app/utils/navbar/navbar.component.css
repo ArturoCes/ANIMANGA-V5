@@ -1,0 +1,50 @@
+.app-menu{
+
+  width: 200px;
+  height: 800px;
+  left: 0px;
+  top: 60px;
+  background: #621BA8;
+  border-bottom-right-radius: 0 px;
+  border-top-right-radius: 0 px;
+}
+.ml1{
+
+  font-family: 'Poppins', sans-serif;
+  color: white;
+  width: 68px;
+  height: 33px;
+  left: 64px;
+  top: 10px;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 15px;
+  line-height: 25px;
+  margin-left: 15px;
+  margin-right: auto;
+
+}
+.app-menu :hover{
+  background-color:#621BA8 !important;
+}
+.app-menu :hover .ml1{
+  color: white;
+}
+.navbar-nav > .active > a {
+  background-color: color ;
+}
+.logo-icon {
+  padding-top: 20px;
+  padding-left: 10px;
+  width: 264px;
+  height: 80px;
+  left: 0px;
+  top: 60px;
+  background: #2E2925;
+  border-bottom-right-radius: 0 px;
+  border-top-right-radius: 0 px;
+}
+.elemento{
+padding-left: 40px;
+padding-right: 40px;
+}

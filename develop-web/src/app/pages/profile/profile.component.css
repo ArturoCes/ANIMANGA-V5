@@ -1,0 +1,74 @@
+.fila{
+
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-direction: row !important;
+}
+.borde{
+  border-radius: 50%;
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+}
+.texto{
+  width: 250px;
+  height: 20px;
+  padding: 20px;
+}
+.columna{
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .mat-form-field-readonly .mat-form-field-outline {
+  border-radius: 5px;
+  background-color: rgba(162, 144, 190, 0.37);
+  color: rgba(23, 131, 32, 0) !important;
+}
+
+::ng-deep .mat-form-field-write .mat-form-field-outline {
+  border-radius: 5px;
+  background-color: white;
+  color: #B1E457 !important;
+}
+.profile-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.profile-image-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.profile-image {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover;
+}
+
+.button-container {
+  margin-top: 20px;
+}
+
+.save-button {
+  width: 150px;
+}
+
+.transparent-container {
+  height: 100px;
+}

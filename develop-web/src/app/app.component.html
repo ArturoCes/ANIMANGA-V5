@@ -1,0 +1,12 @@
+<div class="cont">
+  <app-toolbar *ngIf="this.router.url!='/register'&&this.router.url!='/login'"></app-toolbar>
+  <mat-drawer-container autosize [ngStyle]="{'background-color': (this.router.url!='/register'&&this.router.url!='/login') ? '#ffff' : '#121826'}" class="example-container" >
+    <mat-drawer #drawer *ngIf="this.router.url!='/register'&&this.router.url!='/login'" mode="side" opened>
+      <app-navbar></app-navbar>
+    </mat-drawer>
+    <mat-drawer-content >
+      <router-outlet ></router-outlet>
+    </mat-drawer-content>
+  </mat-drawer-container>
+
+  </div>
