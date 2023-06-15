@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "animangav4frontend" "\0"
+            VALUE "FileDescription", "animangav5frontend" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "animangav4frontend" "\0"
+            VALUE "InternalName", "animangav5frontend" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2023 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "animangav4frontend.exe" "\0"
-            VALUE "ProductName", "animangav4frontend" "\0"
+            VALUE "OriginalFilename", "animangav5frontend.exe" "\0"
+            VALUE "ProductName", "animangav5frontend" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
