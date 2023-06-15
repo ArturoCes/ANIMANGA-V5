@@ -14,7 +14,7 @@ import '../models/errors.dart';
 class ApiConstants {
   //&static String baseUrl = "http://localhost:8080";
   static String imageBaseUrl = baseUrl + "/download/";
-  static String baseUrl = "http://10.0.2.2:8080";
+  static String baseUrl = "https://animanga-apirest-daeec61f336b.herokuapp.com";
 }
 
 class HeadersApiInterceptor implements InterceptorContract {
