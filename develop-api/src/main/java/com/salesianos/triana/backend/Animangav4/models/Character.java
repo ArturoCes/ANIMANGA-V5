@@ -6,6 +6,7 @@ import org.hibernate.annotations.Parameter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.UUID;
 
 @EntityListeners(AuditingEntityListener.class)
@@ -15,7 +16,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Character {
+@Table(name = "characters")
+public class Character implements Serializable {
 
     @Id
     @GeneratedValue(generator = "UUID")
@@ -26,7 +28,6 @@ public class Character {
                     @Parameter(
                             name = "uuid_gen_strategy_class",
                             value = "org.hibernate.id.uuid.CustomVersionOneStrategy"
-
                     )
             }
     )
@@ -38,11 +39,11 @@ public class Character {
     private Integer age;
 
     private String description;
+
+    private String imageUrl;
     @ManyToOne
-    @JoinColumn(name = "manga_id")
+    @JoinColumn(name = "manga_id", foreignKey = @ForeignKey(name = "FK_CHARACTER_MANGA"))
     private Manga manga;
 
-    public void setManga(Manga manga) {
-        this.manga = manga;
-    }
+
 }

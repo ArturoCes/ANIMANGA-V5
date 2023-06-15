@@ -6,6 +6,7 @@ class User {
     required this.fullName,
     required this.email,
     required this.createdAt,
+    required this.idCart
   });
   late final String id;
   late final String image;
@@ -13,6 +14,7 @@ class User {
   late final String fullName;
   late final String email;
   late final String createdAt;
+  late final String idCart;
 
   User.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -21,6 +23,7 @@ class User {
     fullName = json['fullName'];
     email = json['email'];
     createdAt = json['createdAt'];
+    idCart = json['idCart'];
   }
 
   Map<String, dynamic> toJson() {
@@ -31,6 +34,7 @@ class User {
     _data['fullName'] = fullName;
     _data['email'] = email;
     _data['createdAt'] = createdAt;
+    _data['idCart'] = idCart;
     return _data;
   }
 }

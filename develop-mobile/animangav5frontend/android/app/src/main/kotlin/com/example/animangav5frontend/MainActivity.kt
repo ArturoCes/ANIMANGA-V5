@@ -1,4 +1,4 @@
-package com.example.animangav4frontend
+package com.example.animangav5frontend
 
 import io.flutter.embedding.android.FlutterActivity
 

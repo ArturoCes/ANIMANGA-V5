@@ -1,0 +1,195 @@
+/* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.mat-drawer-container {
+  height: 100%;
+  overflow: auto;
+}
+body {
+  overflow: hidden;
+}
+
+
+.main-container {
+  min-height: 400px;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+}
+.main-container {
+  min-height: 28em;
+  width: 95%;
+  padding-left: 3em;
+  padding-right: 0%;
+  padding-bottom: 6em;
+  margin-right: 0%;
+}
+
+.align>* {
+  display: inline-block;
+
+}
+td {
+  padding: 5px !important;
+}
+
+.truncate {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 200px !important;
+}
+
+.input-search {
+  height: 41px;
+  width: 250px;
+  border-style: none;
+  padding: 2px;
+  padding-left: 20px;
+  font-size: 18px;
+  letter-spacing: 2px;
+  outline: none;
+  border-bottom-right-radius: 10px;
+  border-top-right-radius: 10px;
+  background-color: #ffffff;
+  padding-right: 0px;
+  color: black;
+  margin-bottom: 10px;
+  margin-left: 20px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.input-search::placeholder {
+  color: #2E2925;
+  font-size: 18px;
+  letter-spacing: 2px;
+  font-weight: 100;
+}
+
+.btn-search {
+  width: 35px;
+  height: 45px;
+  border-style: none;
+  font-size: 20px;
+  font-weight: bold;
+  outline: none;
+  cursor: pointer;
+  border-radius: 25%;
+  position: absolute;
+  color: #ffffff;
+  background-color: #ffffff;
+  pointer-events: painted;
+
+}
+.h1-table-options {
+  width: 98,6%;
+  height: 72px;
+  padding: 5px 20px;
+  background-color: #af64fa;
+  border-radius: 16px;
+}
+.aligned{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 13px;
+}
+
+.add{
+  cursor: pointer;
+}
+
+.title-pages{
+  margin-top: 20px !important;
+  font-size: 26pt !important;
+}
+
+.op{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.closebutton{
+  cursor: pointer;
+}
+
+
+.mat-drawer-inner-container{
+  height: 100%;
+}
+
+.container{
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-direction: column !important;
+  background-color: white;
+  padding: 20px;
+}
+
+.buttondelete{
+  font-family: 'Poppins';
+  font-weight: bold;
+  width: 150px;
+  margin: 10%;
+}
+
+.buttonsave{
+  padding: 5px 30px;
+  border-radius: 50px;
+  margin: auto !important;
+  font-family: 'Poppins';
+  width: 150px;
+  height: 50px;
+
+  font-weight: bolder;
+}
+
+.mat-delete {
+  background-color: #F9E6E8;
+  color: #C00218;
+}
+.mat-delete:hover {
+  background-color: #FFF8F8;
+  color: #C00218;
+}
+.mat-save {
+  background-color: #621BA8;
+  color: #FFFFFF;
+}
+
+.rectangule {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 250px;
+  background-color: #af64fa;
+}
+.rectangule-trasparent {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 250px;
+}
+
+.titulo{
+  font-family: 'Poppins';
+  font-weight: bolder;
+  font-size: 20pt;
+  text-align: left;
+  width: 300px;
+}
+
+.linea {
+  width: 100%;
+  border-top: 2px #EAEEFB solid;
+  display: flex;
+  justify-content: center;
+}
+
+.op{
+  display: flex;
+}
+

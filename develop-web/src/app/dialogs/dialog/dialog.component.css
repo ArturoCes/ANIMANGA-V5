@@ -1,0 +1,37 @@
+.dialog-content {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+h1{
+  width: 100%;
+  text-align: center;
+  font-size: 18pt;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.botones{
+  display: flex;
+  justify-content: space-between;
+  margin: auto;
+}
+
+.stylish-button {
+  color: white;
+  background-color: #b393ff;  /* Color lila más claro */
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  flex-grow: 1;
+  margin: 0 15px !important;
+}
+
+.stylish-button:hover {
+  background-color: #8a6cd1;  /* Un poco más oscuro al hacer hover */
+}

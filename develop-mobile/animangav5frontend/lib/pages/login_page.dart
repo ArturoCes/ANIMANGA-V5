@@ -95,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
                 if (state is LoginSuccess) {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => BottomNavBar()),
+                    MaterialPageRoute(builder: (context) => const BottomNavBar()),
                   );
                 } else if (state is LoginFailure) {
                   _showSnackbar(context, state.error);

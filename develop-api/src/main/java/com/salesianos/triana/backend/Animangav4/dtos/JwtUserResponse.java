@@ -24,7 +24,8 @@ public class JwtUserResponse extends UserResponse {
         email = userResponse.getEmail();
         image = userResponse.getImage();
         createdAt = userResponse.getCreatedAt();
-
+        role = userResponse.getRole();
+        idCart = userResponse.getIdCart();
     }
 
     public static JwtUserResponse of(User user, String token, String refreshToken) {

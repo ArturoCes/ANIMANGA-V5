@@ -1,0 +1,31 @@
+.image{
+  width: 350px;
+  margin: 2%;
+}
+.example-card{
+  display: flex;
+}
+mat-card{
+  margin: 2%;
+}
+mat-card-content{
+  margin: 2%;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  font-family: 'Poppins';
+  font-size: 12pt;
+}
+.bot{
+  margin: 2%;
+}
+.chapter{
+  border-radius: 20px;
+  box-shadow: 2px 2px 2px 2px #888888;
+  padding: 10px;
+  margin: 10px;
+}
+.sub{
+  display: flex;
+  justify-content: space-between;
+}

@@ -1,0 +1,12 @@
+<div class="dialog-content">
+  <h1 *ngIf="data.user.role=='USER'">¿Seguro que desea dar el rol de admin a este usuario?</h1>
+  <h1 *ngIf="data.user.role=='ADMIN'">¿Seguro que desea quitar el rol de admin a este usuario?</h1>
+  <div class="botones">
+    <button (click)="give()" class="buttonsave stylish-button" mat-flat-button color="delete">
+      Aceptar
+    </button>
+    <button (click)="cancelar()" class="buttonsave stylish-button" mat-flat-button color="save">
+      Cancelar
+    </button>
+  </div>
+</div>

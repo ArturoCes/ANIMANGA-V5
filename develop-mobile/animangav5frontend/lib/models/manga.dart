@@ -1,3 +1,5 @@
+import 'package:animangav4frontend/models/volumen.dart';
+
 class MangaResponse {
   MangaResponse({
     required this.content,
@@ -23,9 +25,9 @@ class MangaResponse {
   late final bool first;
   late final int numberOfElements;
   late final bool empty;
-  
-  MangaResponse.fromJson(Map<String, dynamic> json){
-    content = List.from(json['content']).map((e)=>Manga.fromJson(e)).toList();
+
+  MangaResponse.fromJson(Map<String, dynamic> json) {
+    content = List.from(json['content']).map((e) => Manga.fromJson(e)).toList();
     pageable = Pageable.fromJson(json['pageable']);
     last = json['last'];
     totalPages = json['totalPages'];
@@ -40,7 +42,7 @@ class MangaResponse {
 
   Map<String, dynamic> toJson() {
     final _data = <String, dynamic>{};
-    _data['content'] = content.map((e)=>e.toJson()).toList();
+    _data['content'] = content.map((e) => e.toJson()).toList();
     _data['pageable'] = pageable.toJson();
     _data['last'] = last;
     _data['totalPages'] = totalPages;
@@ -64,6 +66,7 @@ class Manga {
     required this.posterPath,
     required this.author,
     required this.categories,
+     this.volumenes,
   });
   late final String id;
   late final String name;
@@ -72,15 +75,19 @@ class Manga {
   late final String posterPath;
   late final String author;
   late final List<dynamic> categories;
-  
-  Manga.fromJson(Map<String, dynamic> json){
+  List<dynamic>? volumenes;
+
+  Manga.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
     description = json['description'];
     releaseDate = json['releaseDate'];
-    posterPath = json ['posterPath'];
-    author = json ['author'];
+    posterPath = json['posterPath'];
+    author = json['author'];
     categories = List.castFrom<dynamic, dynamic>(json['categories']);
+     volumenes = json['volumenes'] != null
+        ? List.from(json['volumenes']).map((e) => Volumen.fromJson(e)).toList()
+        : null; // Asigna null si no hay volúmenes en el JSON
   }
 
   Map<String, dynamic> toJson() {
@@ -92,6 +99,7 @@ class Manga {
     _data['posterPath'] = posterPath;
     _data['author'] = author;
     _data['categories'] = categories;
+    _data['volumenes']=volumenes;
     return _data;
   }
 }
@@ -111,8 +119,8 @@ class Pageable {
   late final int pageNumber;
   late final bool unpaged;
   late final bool paged;
-  
-  Pageable.fromJson(Map<String, dynamic> json){
+
+  Pageable.fromJson(Map<String, dynamic> json) {
     sort = Sort.fromJson(json['sort']);
     offset = json['offset'];
     pageSize = json['pageSize'];
@@ -142,8 +150,8 @@ class Sort {
   late final bool empty;
   late final bool sorted;
   late final bool unsorted;
-  
-  Sort.fromJson(Map<String, dynamic> json){
+
+  Sort.fromJson(Map<String, dynamic> json) {
     empty = json['empty'];
     sorted = json['sorted'];
     unsorted = json['unsorted'];

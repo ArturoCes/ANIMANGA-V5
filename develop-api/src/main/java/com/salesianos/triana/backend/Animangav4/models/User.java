@@ -12,10 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -51,6 +48,17 @@ public class User implements UserDetails {
     private String verifyPassword;
     private String image;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Cart carrito;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(joinColumns = @JoinColumn(name = "user_id",
+            foreignKey = @ForeignKey(name="FK_FAVORITO_USER")),
+            inverseJoinColumns = @JoinColumn(name = "manga_id",
+                    foreignKey = @ForeignKey(name="FK_FAVORITO_MANGA")),
+            name = "favoritos"
+    )
+    private List<Manga> favoritos = new ArrayList<>();
     private UserRole role;
     @Builder.Default
     private boolean accountNonExpired = true;
@@ -101,5 +109,19 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return enabled;
     }
+
+    public void addMangaFavorite(Manga m) {
+        this.getFavoritos().add(m);
+
+        m.getUsersMangaFavorite().add(this);
+    }
+
+    public void removeMangaFavorite(Manga m) {
+        m.getUsersMangaFavorite().remove(this);
+        this.getFavoritos().remove(m);
+    }
+
+
+
 
 }

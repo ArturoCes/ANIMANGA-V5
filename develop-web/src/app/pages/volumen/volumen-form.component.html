@@ -1,0 +1,40 @@
+<section >
+  <form class="container" [formGroup]="formulario">
+    <div class="op">
+      <h2 *ngIf="this.data.volumen!=null" class="titulo">Editar volumen</h2>
+      <h2 *ngIf="this.data.volumen==null" class="titulo">Crear volumen</h2>
+      <mat-icon class="closebutton" (click)="cancelar()">close</mat-icon>
+    </div>
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre</mat-label>
+      <input matInput placeholder="nombre" formControlName="nombre">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Precio</mat-label>
+      <input matInput placeholder="precio" formControlName="precio">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Cantidad</mat-label>
+      <input matInput placeholder="cantidad" formControlName="cantidad">
+    </mat-form-field>
+    <mat-form-field appearance="outline" *ngIf="this.data.volumen==null">
+      <mat-label>Isbn</mat-label>
+      <input matInput placeholder="isbn" formControlName="isbn">
+    </mat-form-field>
+    <div>
+    <input type="file" placeholder="posterPath" name="file" id="file" (change)="onFileChanged($event)" />
+    </div>
+
+    <div class="linea" *ngIf="data.volumen!=null">
+      <button (click)="eliminar()" class="buttondelete" mat-flat-button color="delete" >
+        <mat-icon>delete</mat-icon>
+        Eliminar
+      </button>
+    </div>
+  </form>
+  <div class="rectangule">
+    <button (click)="editarCrear()" class="buttonsave" mat-flat-button color="save">
+      Guardar
+    </button>
+  </div>
+</section>

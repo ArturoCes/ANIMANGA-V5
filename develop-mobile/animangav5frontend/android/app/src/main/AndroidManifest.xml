@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.animangav4frontend">
-   <application
-        android:label="animangav4frontend"
+    package="com.example.animangav5frontend">
+    <application
+        android:label="animangav5frontend"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -14,6 +14,7 @@ public class UserDtoConverter {
                 .image(uri)
                 .password(createUserDto.getPassword())
                 .username(createUserDto.getUsername())
+
                 .build();
     }
 
@@ -25,6 +26,8 @@ public class UserDtoConverter {
                 .fullName(u.getFullName())
                 .email(u.getEmail())
                 .image(u.getImage())
+                .role(u.getRole().toString())
+                .idCart(u.getCarrito().getId())
                 .build();
     }
 

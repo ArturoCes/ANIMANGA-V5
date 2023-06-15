@@ -21,4 +21,8 @@ public class GetUserDto {
     private String fullName;
 
     private LocalDateTime createdAt;
+
+    private String role;
+
+    private UUID idCart;
 }

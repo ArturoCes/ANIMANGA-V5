@@ -14,3 +14,20 @@ class FindAllMangas extends MangasEvent {
   @override
   List<Object> get props => [startIndex];
 }
+
+
+class FindAllCategories extends MangasEvent {}
+
+class FindAllMangasByCat extends MangasEvent {
+  final String name;
+  const FindAllMangasByCat(this.name);
+  @override
+  List<Object> get props => [name];
+}
+class FindAllMangasFavorite extends MangasEvent{
+
+  final String username;
+  const FindAllMangasFavorite(this.username);
+  @override
+  List<Object> get props => [username];
+}

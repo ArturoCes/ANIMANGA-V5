@@ -1,0 +1,30 @@
+<section >
+  <form class="container" [formGroup]="formulario">
+    <div class="op">
+    <h2 *ngIf="data!=null" class="titulo">Editar Categoría</h2>
+    <h2 *ngIf="data==null" class="titulo">Crear Categoría</h2>
+    <mat-icon class="closebutton" (click)="cancelar()">close</mat-icon>
+  </div>
+    <mat-form-field appearance="outline">
+      <mat-label>Titulo</mat-label>
+      <input matInput placeholder="name" formControlName="name">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Descripción</mat-label>
+      <input matInput placeholder="description" formControlName="description">
+    </mat-form-field>
+
+    <div class="linea" *ngIf="data!=null">
+      <button (click)="eliminar()" class="buttondelete" mat-flat-button color="delete" >
+        <mat-icon>delete</mat-icon>
+        Eliminar
+      </button>
+    </div>
+  </form>
+  <div class="rectangule">
+    <button (click)="editarCrear()" class="buttonsave" mat-flat-button color="save">
+      Guardar
+    </button>
+  </div>
+</section>

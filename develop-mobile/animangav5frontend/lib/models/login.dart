@@ -1,14 +1,14 @@
 class LoginResponse {
-  LoginResponse({
-    required this.id,
-    required this.email,
-    required this.image,
-    required this.username,
-    required this.fullName,
-    required this.createdAt,
-    required this.token,
-    required this.refreshToken,
-  });
+  LoginResponse(
+      {required this.id,
+      required this.email,
+      required this.image,
+      required this.username,
+      required this.fullName,
+      required this.createdAt,
+      required this.token,
+      required this.refreshToken,
+      required this.idCart});
   late final String id;
   late final String email;
   late final String image;
@@ -18,8 +18,9 @@ class LoginResponse {
   late final String createdAt;
   late final String token;
   late final String refreshToken;
-  
-  LoginResponse.fromJson(Map<String, dynamic> json){
+  late final String idCart;
+
+  LoginResponse.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     email = json['email'];
     image = json['image'];
@@ -28,6 +29,7 @@ class LoginResponse {
     createdAt = json['createdAt'];
     token = json['token'];
     refreshToken = json['refreshToken'];
+    idCart = json['idCart'];
   }
 
   Map<String, dynamic> toJson() {
@@ -40,10 +42,10 @@ class LoginResponse {
     _data['createdAt'] = createdAt;
     _data['token'] = token;
     _data['refreshToken'] = refreshToken;
+    _data['idCart'] = idCart;
     return _data;
   }
 }
-
 
 class LoginRequest {
   String? username;

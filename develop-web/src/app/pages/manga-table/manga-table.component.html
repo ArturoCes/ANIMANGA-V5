@@ -1,0 +1,65 @@
+<section class="main-container">
+  <h1 class="title-pages">Mangas</h1>
+
+    <div class="h1-table-options">
+        <div class="aligned">
+            <div class="search-box" [formGroup]="formulario">
+                <button class="btn-search"><img src="../../../assets/img/search.svg"></button>
+               <input (change)="buscar()" type="text" formControlName="name" class="input-search" placeholder="Buscar">
+            </div>
+
+            <div class="add">
+              <mat-icon (click)="crearManga()" matTooltip="Crear manga">add</mat-icon>
+            </div>
+
+        </div>
+    </div>
+
+
+<table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+
+
+  <!-- Name Column -->
+  <ng-container matColumnDef="name">
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Titulo </th>
+    <td colspan="2" mat-cell *matCellDef="let element"> {{element.name}} </td>
+  </ng-container>
+
+  <!-- Weight Column -->
+  <ng-container matColumnDef="description" >
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Descripción </th>
+    <td colspan="2" class="truncate" mat-cell *matCellDef="let element"> {{element.description}} </td>
+  </ng-container>
+
+
+  <!-- Symbol Column-->
+  <ng-container matColumnDef="releaseDate">
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Fecha de publicación </th>
+    /<td colspan="2" mat-cell *matCellDef="let element"> {{element.releaseDate}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="posterPath">
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Cover </th>
+    <td colspan="2" mat-cell *matCellDef="let element">{{element.posterPath}}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="author">
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Autor </th>
+    <td colspan="2" mat-cell *matCellDef="let element"> {{element.author}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="acciones">
+    <th colspan="2" mat-header-cell *matHeaderCellDef> Acciones </th>
+    <td colspan="2" mat-cell *matCellDef="let element">
+      <button mat-button (click)="editarManga(element)" matTooltip="Editar Manga"><mat-icon>edit</mat-icon></button>
+      <button mat-button [routerLink]="['/manga/detail/', element?.id]" matTooltip="Ver más"><mat-icon>more</mat-icon></button>
+    </td>
+
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
+
+<mat-paginator class="mat-elevation-z8 mat-paginator" [pageSizeOptions]="[5, 10, 15]" [pageSize]="5" [length]="totalElements" (page)="nextPage($event)"  showFirstLastButtons></mat-paginator>
+</section>

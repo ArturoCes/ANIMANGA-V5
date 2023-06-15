@@ -27,7 +27,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       if (user != null) {
         box.write('token', user.token);
         box.write('image', user.image);
-        box.write('idUser',user.username);
+        box.write('username', user.username);
+        box.write('idUser', user.id);
+        box.write('idCart',user.idCart);
         emit(LoginSuccess());
       }
     } on LoginError catch (err) {

@@ -1,0 +1,16 @@
+<mat-toolbar>
+  <div class="toolbar">
+    <div>
+      <span><img src="../../../assets/img/Logo.png" width="300px"></span>
+    </div>
+    <button class="boton" (click)="logout()" mat-button>
+      <mat-icon color="white">logout</mat-icon>
+    </button>
+    <button mat-button [matMenuTriggerFor]="menu"><mat-icon color="white">menu</mat-icon></button>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item (click)="seleccionar()">Mi Perfil</button>
+      <button mat-menu-item (click)="logout()">Cerrar sesión</button>
+    </mat-menu>
+
+</div>
+</mat-toolbar>

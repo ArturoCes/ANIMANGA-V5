@@ -1,0 +1,27 @@
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<table class="table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Número de tarjeta</th>
+      <th>ID del Carrito</th>
+      <th>ID del Usuario</th>
+      <th>ID del Volumen</th>
+      <th>Precio</th>
+      <th>Nombre Completo</th>
+      <th>Fecha de Compra</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let purchase of purchases">
+      <td>{{ purchase.idPurchase }}</td>
+      <td>{{ purchase.numCreditCard }}</td>
+      <td>{{ purchase.idCart }}</td>
+      <td>{{ purchase.idUser }}</td>
+      <td>{{ purchase.idVolumen }}</td>
+      <td>{{ purchase.precio }}</td>
+      <td>{{ purchase.fullName }}</td>
+      <td>{{ purchase.purchaseDate | date }}</td>
+    </tr>
+  </tbody>
+</table>

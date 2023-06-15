@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MangaDtoConverter {
     private final CategoryDtoConverter categoryDtoConverter;
+    private final VolumenDtoConverter volumenDtoConverter;
 
     public Manga createMangaDtoToManga(CreateMangaDto createMangaDto, String uri) {
         return Manga.builder()
@@ -31,6 +32,8 @@ public class MangaDtoConverter {
                 .author(m.getAuthor())
                 .categories(m.getCategories().stream()
                         .map(categoryDtoConverter::categoryToCategoryDto).collect(Collectors.toList()))
+                .volumenes(m.getTomos().stream()
+                        .map(volumenDtoConverter::volumenToGetVolumenDto).collect(Collectors.toList()))
                 .build();
     }
 }

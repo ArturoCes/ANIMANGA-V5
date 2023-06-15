@@ -1,0 +1,55 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 60%;
+  margin: 0 auto;
+}
+
+.op {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.titulo {
+  color: #621BA8;
+  font-size: 14pt;
+}
+
+.closebutton {
+  cursor: pointer;
+  color: #621BA8;
+}
+
+.mat-form-field {
+  margin-bottom: 20px;
+}
+
+.buttondelete, .buttonsave {
+  font-size: 12px;
+  color: #FFFFFF;
+  border-radius: 15px;
+  padding: 6px 10px;
+  margin: 0 5px;
+}
+
+.buttondelete {
+  background-color: #e57373;
+}
+
+.buttonsave {
+  background-color: #66bb6a;
+}
+
+.buttondelete:hover {
+  background-color: #ef5350;
+}
+
+.buttonsave:hover {
+  background-color: #81c784;
+}
+
+.rectangule, .linea {
+  display: flex;
+  justify-content: space-around; /* esta línea hace que los botones estén uno al lado del otro */
+}

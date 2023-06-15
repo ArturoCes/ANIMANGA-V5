@@ -30,8 +30,7 @@ public class CategoryService {
 
 
     public GetCategoryDto save(CreateCategoryDto createCategoryDto, User user){
-        System.out.println(user.getRole());
-        if(user.getRole().equals(UserRole.USER)){
+        if(user.getRole().equals(UserRole.ADMIN)){
             Category category = categoryDtoConverter.createCategoryDtoToCategory(createCategoryDto);
             categoryRepository.save(category);
             return categoryDtoConverter.categoryToCategoryDto(category);

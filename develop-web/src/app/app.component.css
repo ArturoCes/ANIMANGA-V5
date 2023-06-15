@@ -1,0 +1,92 @@
+.example-container {
+  width: 100%;
+
+}
+mat-drawer{
+ background-color: #621BA8;
+ height: 100%;
+ display:flex;
+ font-family: 'Mohave';
+/*   transition: none; */
+}
+.cont{
+ height: 100%;
+}
+
+body{
+ padding: 0px;
+ margin: 0px;
+ height: 100%;
+}
+mat-drawer-container{
+ min-height: 880px;
+}
+.container{
+ display: flex !important;
+ justify-content: center !important;
+ align-items: center !important;
+ flex-direction: column !important;
+ background-color: white;
+ padding: 20px;
+}
+
+mat-form-field{
+ font-family: 'Mohave';
+ width: 300px !important;
+ height:70px !important;
+ margin-left: auto !important;
+ margin-right: auto !important;
+}
+
+.buttondelete{
+ font-family: 'Mohave';
+ font-weight: bold;
+ width: 150px;
+ margin: 10%;
+}
+
+.buttonsave{
+ padding: 5px 30px;
+ border-radius: 50px;
+ margin: auto !important;
+ font-family: 'Poppins';
+ width: 150px;
+ height: 50px;
+
+ font-weight: bolder;
+}
+
+.mat-delete {
+ background-color: #F9E6E8;
+ color: #C00218;
+}
+.mat-delete:hover {
+ background-color: #FFF8F8;
+ color: #C00218;
+}
+.mat-save {
+ background-color: #621BA8;
+ color: #FFFFFF;
+}
+
+.titulo{
+ font-family: 'Poppins';
+ font-weight: bolder;
+ font-size: 20pt;
+ text-align: left;
+ width: 300px;
+}
+
+.linea {
+ width: 100%;
+ border-top: 2px #EAEEFB solid;
+ display: flex;
+ justify-content: center;
+}
+
+.op{
+ display: flex;
+}
+.closebutton{
+ cursor: pointer;
+}

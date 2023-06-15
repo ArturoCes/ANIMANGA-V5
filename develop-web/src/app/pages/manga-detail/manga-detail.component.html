@@ -1,0 +1,65 @@
+<mat-card >
+  <div class="example-card">
+    <mat-card-header>
+      <img mat-card-image src="{{image}}" class="image" alt="Portada">
+    </mat-card-header>
+    <mat-card-content>
+      <div>
+        <mat-card-title>{{manga?manga.name:"Nombre Manga"}}</mat-card-title>
+        <mat-card-subtitle>{{manga?manga.author:"Autor"}}</mat-card-subtitle>
+        <p>
+          {{manga?manga.description:"Descripción"}}
+          </p>
+      </div>
+      <p class="date">
+        <strong>Fecha de publicación:</strong> {{manga?manga.releaseDate:"Fecha de publicación"}}
+      </p>
+    </mat-card-content>
+  </div>
+  <div class="bot">
+    <div class="sub">
+    <h2>Volumenes</h2>
+      <mat-icon (click)="crearVolumen()" matTooltip="Crear Volumen">add</mat-icon>
+    </div>
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        <ng-container matColumnDef="nombre">
+          <th colspan="2" mat-header-cell *matHeaderCellDef> Nombre </th>
+          <td colspan="2" mat-cell *matCellDef="let element"> {{element.nombre}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="precio">
+          <th colspan="2" mat-header-cell *matHeaderCellDef> Precio </th>
+          <td colspan="2" mat-cell *matCellDef="let element"> {{element.precio}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="isbn" >
+          <th colspan="2" mat-header-cell *matHeaderCellDef> ISBN </th>
+          <td colspan="2" mat-cell *matCellDef="let element"> {{element.isbn}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="cantidad" >
+          <th colspan="2" mat-header-cell *matHeaderCellDef> Cantidad </th>
+          <td colspan="2" mat-cell *matCellDef="let element"> {{element.cantidad}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="posterPath" >
+          <th colspan="2" mat-header-cell *matHeaderCellDef> Poster url </th>
+          <td colspan="2" mat-cell *matCellDef="let element"> {{element.posterPath}} </td>
+        </ng-container>
+
+
+        <ng-container matColumnDef="acciones">
+          <th colspan="2" mat-header-cell *matHeaderCellDef> Acciones </th>
+          <td colspan="2" mat-cell *matCellDef="let element">
+            <button mat-button (click)="editarVolumen(element)" matTooltip="Editar Volumen"><mat-icon>edit</mat-icon></button>
+          </td>
+
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <mat-paginator class="mat-elevation-z8 mat-paginator" [pageSizeOptions]="[5, 10, 15]" showFirstLastButtons></mat-paginator>
+    </div>
+
+</mat-card>

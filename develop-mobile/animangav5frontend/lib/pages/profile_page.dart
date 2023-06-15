@@ -108,7 +108,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _userItem(User userLogged) {
-    box.write('idUser', userLogged.id);
+  
     return Column(
       children: [
         Center(

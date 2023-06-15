@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:animangav4frontend/pages/cart_page.dart';
+import 'package:animangav4frontend/pages/mangas_favorites_page.dart';
 import 'package:animangav4frontend/pages/mangas_page.dart';
 import 'package:animangav4frontend/pages/profile_page.dart';
 import 'package:animangav4frontend/utils/styles.dart';
@@ -17,8 +19,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   List<Widget> pages = [
     const MangasPage(),
-    const MangasPage(),
-    ProfilePage(),
+    const CartPage(),
+    FavoritesPage(),
   ];
   Future<bool> _onWillPop() async {
     return (await showDialog(
@@ -63,7 +65,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white, //BARRA BLANCA
+        backgroundColor: Colors.transparent,
+        extendBody: true, //BARRA TRANSPARENTE :D
         body: WillPopScope(onWillPop: _onWillPop, child: pages[_currentIndex]),
         bottomNavigationBar: _buildBottomBar());
   }
@@ -84,7 +87,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
         children: [
           _buildNavItem(Icons.home, 0),
           _buildNavItem(Icons.add_shopping_cart, 1),
-          _buildNavItem(Icons.person, 2),
+          _buildNavItem(Icons.favorite, 2),
         ],
       ),
     );

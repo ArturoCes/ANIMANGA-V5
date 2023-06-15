@@ -68,10 +68,7 @@ class _ProfilePageScreenState extends State<ProfileEditPage> {
       return state is EditUserSuccessState || state is EditUserErrorState;
     }, listener: (context, state) {
       if (state is EditUserSuccessState) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const BottomNavBar()),
-        );
+        Navigator.pushReplacementNamed(context,"/");
         _createDialog(context);
       } else if (state is EditUserErrorState) {
         _showSnackbar(context, state.error);

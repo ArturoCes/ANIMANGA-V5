@@ -35,4 +35,6 @@ public class CreateUserDto {
 
     private String image;
 
+
+
 }

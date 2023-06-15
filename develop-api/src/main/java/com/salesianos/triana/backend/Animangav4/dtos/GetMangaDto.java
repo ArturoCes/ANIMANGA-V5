@@ -20,4 +20,5 @@ public class GetMangaDto {
     private String author;
     private List<GetCategoryDto> categories;
 
+    private List<GetVolumenDto>volumenes;
 }
