@@ -39,8 +39,8 @@ public class Item {
     private Cart cart;
 
     @ManyToOne
-    @JoinColumn(name = "manga_id")
-    private Manga manga;
+    @JoinColumn(name = "volumen_id")
+    private Volumen volumen;
 
     private Integer quantity;
 

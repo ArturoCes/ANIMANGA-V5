@@ -14,8 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.awt.print.Book;
 import java.util.*;
 
 
@@ -33,11 +31,8 @@ public class MangaService {
     private final CharacterDtoConverter characterDtoConverter;
 
 
-    public Manga save(CreateMangaDto createMangaDto, MultipartFile file, User user) {
-        Optional<User> u = userRepository.findById(user.getId());
-        if (u.isEmpty()) {
-            throw new EntityNotFoundException(user.getId().toString(), User.class);
-        } else {
+    public Manga save(CreateMangaDto createMangaDto, MultipartFile file) {
+
             String uri = storageService.store(file);
             //   uri = storageService.uriComplete(uri);
             Manga m = mangaDtoConverter.createMangaDtoToManga(createMangaDto, uri);
@@ -49,7 +44,7 @@ public class MangaService {
             m.getCategories().addAll(list);
             return mangaRepository.save(m);
         }
-    }
+
 
     public Page<GetMangaDto> findByName (String name, Pageable pageable) {
         Page<Manga> lista = mangaRepository.findByNameIgnoreCaseContains(name, pageable);
@@ -71,7 +66,7 @@ public class MangaService {
         Optional<Manga> m1 = mangaRepository.findById(id);
 
         if (m1.isEmpty()) {
-            throw new EntityNotFoundException(id.toString(), Book.class);
+            throw new EntityNotFoundException(id.toString(), Manga.class);
         } else {
             Optional<User> u = userRepository.findById(user.getId());
 
@@ -95,7 +90,7 @@ public class MangaService {
         if (m.isEmpty()) {
             throw new EntityNotFoundException(id.toString(), Manga.class);
         } else {
-            storageService.deleteFile(m.get().getPosterPath());
+//            storageService.deleteFile(m.get().getPosterPath());
             mangaRepository.deleteById(id);
         }
     }
@@ -178,8 +173,29 @@ public class MangaService {
 
         return mangaRepository.findByCategoryName(name, pageable);
 
+    }
+    public Manga editPosterPath(User user,MultipartFile file, UUID id) {
 
+        Optional<Manga> m1 = mangaRepository.findById(id);
 
+        if(m1.isEmpty()){
+            throw new EntityNotFoundException(id.toString(), Manga.class);
+        } else {
+            Optional<User> u = userRepository.findById(user.getId());
+
+            if(user.getRole().equals(UserRole.ADMIN)){
+                String uri = storageService.store(file);
+             //   uri = storageService.uriComplete(uri);
+
+                if(!m1.get().getPosterPath().isEmpty()) {
+                    storageService.deleteFile(m1.get().getPosterPath());
+                }
+                m1.get().setPosterPath(uri);
+                return mangaRepository.save(m1.get());
+            } else {
+                throw new ForbiddenException("No tiene permisos para realizar esta acción");
+            }
+        }
     }
 
 }

@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-@Table(name = "carts")
+@Table(name = "cart")
 public class Cart {
 
     @Id
@@ -33,12 +33,11 @@ public class Cart {
     )
     @Column(columnDefinition = "uuid")
     private UUID id;
-
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
-
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Item> items = new ArrayList<>();
 
 

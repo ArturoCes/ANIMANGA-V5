@@ -4,15 +4,21 @@ package com.salesianos.triana.backend.Animangav4.service;
 import com.salesianos.triana.backend.Animangav4.dtos.*;
 import com.salesianos.triana.backend.Animangav4.exception.EntityNotFoundException;
 import com.salesianos.triana.backend.Animangav4.exception.ForbiddenException;
+import com.salesianos.triana.backend.Animangav4.exception.ListNotFoundException;
+import com.salesianos.triana.backend.Animangav4.models.Cart;
 import com.salesianos.triana.backend.Animangav4.models.User;
 import com.salesianos.triana.backend.Animangav4.models.UserRole;
+import com.salesianos.triana.backend.Animangav4.repository.CartRepository;
 import com.salesianos.triana.backend.Animangav4.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.EnumSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,23 +32,27 @@ public class UserService {
     private final StorageService storageService;
     private final UserDtoConverter userDtoConverter;
 
+    private final CartRepository cartRepository;
+
     public User createUser(CreateUserDto createUserRequest, UserRole role) {
+        Cart c = new Cart();
         User user = User.builder().username(createUserRequest
                         .getUsername()).fullName(createUserRequest.getFullName())
                 .email(createUserRequest.getEmail())
                 .password(passwordEncoder.encode(createUserRequest.getPassword()))
                 .image(createUserRequest.getImage() == null ? "https://i.ibb.co/stxTwKC/user.png" : createUserRequest.getImage())
                 .role(role).build();
-
+        userRepository.save(user);
+        c.setUser(user);
+        cartRepository.save(c);
+        user.setCarrito(c);
         return userRepository.save(user);
     }
 
     public User createUserWithUserRole(CreateUserDto createUserRequest) {
         return createUser(createUserRequest, UserRole.USER);
     }
-    public Optional<User> findFirstByUsername(String username) {
-        return userRepository.findFirstByUsername(username);
-    }
+
     public User createUserWithAdminRole(CreateUserDto createUserRequest) {
         return createUser(createUserRequest, UserRole.ADMIN);
     }
@@ -98,6 +108,34 @@ public class UserService {
         }
     }
 
+    public User giveAdmin (User user, UUID idUser){
+        if(user.getRole().equals(UserRole.ADMIN)){
+            Optional<User> u = userRepository.findById(idUser);
+            if(u.isPresent()){
+                u.get().setRole(UserRole.ADMIN);
+                return userRepository.save(u.get());
+            } else {
+                throw new EntityNotFoundException(idUser.toString(), User.class);
+            }
+        }else{
+            throw new ForbiddenException("No tiene permisos para realizar esta acción");
+        }
+    }
+
+    public User removeAdmin (User user, UUID idUser){
+        if(user.getRole().equals(UserRole.ADMIN)){
+            Optional<User> u = userRepository.findById(idUser);
+            if(u.isPresent()){
+                u.get().setRole(UserRole.USER);
+                return userRepository.save(u.get());
+            } else {
+                throw new EntityNotFoundException(idUser.toString(), User.class);
+            }
+        }else{
+            throw new ForbiddenException("No tiene permisos para realizar esta acción");
+        }
+    }
+
 
     public Optional<User> editPassword(UUID userId, String newPassword) {
 
@@ -139,4 +177,59 @@ public class UserService {
 
         }
     }
+    public Page<GetUserDto> findAllUsers (Pageable pageable) {
+        Page<User> lista = userRepository.findAll(pageable);
+
+        if(lista.isEmpty()) {
+            throw new ListNotFoundException(User.class);
+        } else {
+            return lista.map(userDtoConverter::userToGetUserDto);
+        }
+    }
+    private Page<User> find(Optional<String> username, Optional<String> fullname, Optional<String> email
+            , Optional<UserRole> role, Pageable pageable) {
+        Specification<User> specUsername = (username.isPresent() && !username.get().isEmpty())
+                ? (root, query, criteriaBuilder) ->
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("username")), "%" + username.get().toLowerCase() + "%")
+                : null;
+
+        Specification<User> specFullname = (fullname.isPresent() && !fullname.get().isEmpty())
+                ? (root, query, criteriaBuilder) ->
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("fullName")), "%" + fullname.get().toLowerCase() + "%")
+                : null;
+
+        Specification<User> specEmail = (email.isPresent() && !email.get().isEmpty())
+                ? (root, query, criteriaBuilder) ->
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), "%" + email.get().toLowerCase() + "%")
+                : null;
+
+        Specification<User> specRole = role.isPresent()
+                ? (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("role"), role.get())
+                : null;
+
+        Specification<User> spec = Specification.where(specUsername)
+                .or(specFullname)
+                .or(specEmail)
+                .and(specRole);
+
+        return this.userRepository.findAll(spec, pageable);
+    }
+
+    public Page<GetUserDto> findUser(User user, SearchUserDto u, Pageable pageable){
+
+        if(user.getRole().equals(UserRole.ADMIN)){
+            Page<User> lista = find(Optional.ofNullable(u.getUsername()),
+                    Optional.ofNullable(u.getFullName()),
+                    Optional.ofNullable(u.getEmail()),
+                    Optional.ofNullable(u.getRole()),
+                    pageable);
+
+                return lista.map(userDtoConverter::userToGetUserDto);
+
+        }else{
+            throw new ForbiddenException("No tiene permisos para realizar esta acción");
+        }
+    }
+
 }

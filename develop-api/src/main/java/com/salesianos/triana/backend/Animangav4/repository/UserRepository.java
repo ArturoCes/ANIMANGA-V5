@@ -1,6 +1,9 @@
 package com.salesianos.triana.backend.Animangav4.repository;
 
 import com.salesianos.triana.backend.Animangav4.models.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -19,5 +22,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u.email FROM User u WHERE u.username = :username")
     String existsEmailWithUsername(String username);
 
-
+    Page<User> findAll(Specification<User> todas, Pageable pageable);
 }

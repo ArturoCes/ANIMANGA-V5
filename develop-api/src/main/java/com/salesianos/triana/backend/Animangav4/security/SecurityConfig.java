@@ -75,9 +75,12 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/manga/**").hasRole("USER")
+                .antMatchers("/manga/**").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/volumen/**").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/category/**").hasAnyRole("USER", "ADMIN")
                 .antMatchers( "/download/*").anonymous()
-                .antMatchers("/category/**").hasRole("USER")
+                .antMatchers("/category/**").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/user/**").anonymous()
                 .antMatchers("/auth/register/admin").hasRole("ADMIN")
                 .anyRequest().authenticated();
 
@@ -92,7 +95,7 @@ public class SecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web -> web.ignoring().antMatchers("/h2-console/**","/auth/register", "/auth/login", "/v3/api-docs/**",
+        return (web -> web.ignoring().antMatchers("/h2-console/**","/auth/register", "/auth/login", "/v3/api-docs/**","/user/**",
                 "/swagger-ui/**",
                 "/swagger-ui.html",
                 "/swagger-resources/**"));

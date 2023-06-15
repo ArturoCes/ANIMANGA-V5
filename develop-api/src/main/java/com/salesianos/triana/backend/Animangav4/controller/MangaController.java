@@ -80,10 +80,9 @@ public class MangaController {
     })
     @PostMapping("/new")
     public ResponseEntity<GetMangaDto> createManga(@Valid @RequestPart("manga") CreateMangaDto c,
-                                                   @RequestPart("file") MultipartFile file,
-                                                   @AuthenticationPrincipal User user) {
+                                                   @RequestPart("file") MultipartFile file) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(mangaDtoConverter.mangaToGetMangaDto(mangaService.save(c, file, user)));
+                .body(mangaDtoConverter.mangaToGetMangaDto(mangaService.save(c, file)));
     }
 
     @Operation(summary = "Obtener un manga")
@@ -254,6 +253,27 @@ public class MangaController {
         Page<GetMangaDto> lista = mangaService.findByName(searchDto.getName(), pageable);
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(request.getRequestURL().toString());
         return ResponseEntity.ok().header("link", paginationLinksUtils.createLinkHeader(lista, uriBuilder)).body(lista);
+    }
+
+
+    @Operation(summary = "Editar el poster de un manga")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Se edita el cover del libro correctamente",
+                    content = {@Content(mediaType = "aplication/json",
+                            schema = @Schema(implementation = Manga.class))}),
+            @ApiResponse(responseCode = "400",
+                    description = "Error en los datos",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "No se encontró el libro",
+                    content = @Content),
+    })
+    @PutMapping("/poster/{id}")
+    public GetMangaDto editPosterManga(@RequestPart("file")MultipartFile file,
+                                    @AuthenticationPrincipal User user,
+                                    @PathVariable UUID id) {
+        return mangaDtoConverter.mangaToGetMangaDto(mangaService.editPosterPath(user,file, id));
     }
 
 }

@@ -17,7 +17,7 @@ public class CharacterDtoConverter {
             dto.setId(character.getId().toString());
             dto.setName(character.getName());
             dto.setDescription(character.getDescription());
-          //  dto.setImageUrl(character.getImageUrl());
+            dto.setImageUrl(character.getImageUrl());
             return dto;
         }
 
@@ -26,7 +26,7 @@ public class CharacterDtoConverter {
             character.setId(UUID.fromString(dto.getId()));
             character.setName(dto.getName());
             character.setDescription(dto.getDescription());
-         //   character.setImageUrl(dto.getImageUrl());
+            character.setImageUrl(dto.getImageUrl());
             return character;
         }
     }

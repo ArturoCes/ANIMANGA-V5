@@ -47,6 +47,10 @@ public class User implements UserDetails {
     private String password;
     private String verifyPassword;
     private String image;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Cart carrito;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(joinColumns = @JoinColumn(name = "user_id",
             foreignKey = @ForeignKey(name="FK_FAVORITO_USER")),
@@ -116,5 +120,8 @@ public class User implements UserDetails {
         m.getUsersMangaFavorite().remove(this);
         this.getFavoritos().remove(m);
     }
+
+
+
 
 }

@@ -58,7 +58,9 @@ public class Manga implements Serializable {
     )
     private List<Category> categories = new ArrayList<>();
 
-
+    @Builder.Default
+    @OneToMany(mappedBy = "manga", orphanRemoval = true)
+    private List<Volumen> tomos = new ArrayList<>();
     @OneToMany(mappedBy = "manga", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Character> characters = new ArrayList<>();
 
