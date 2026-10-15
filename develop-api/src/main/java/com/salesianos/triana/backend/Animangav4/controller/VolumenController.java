@@ -129,6 +129,14 @@ public class VolumenController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @Operation(summary = "Cambiar la portada de un volumen")
+    @PutMapping("/poster/{id}")
+    public GetVolumenDto editPosterVolumen(@RequestPart("file") MultipartFile file,
+                                           @AuthenticationPrincipal User user,
+                                           @PathVariable UUID id) {
+        return volumenDtoConverter.volumenToGetVolumenDto(volumenService.editPosterPath(user, file, id));
+    }
+
 
 
 }

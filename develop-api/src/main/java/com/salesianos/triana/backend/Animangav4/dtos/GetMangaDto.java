@@ -18,6 +18,7 @@ public class GetMangaDto {
     private LocalDate releaseDate;
     private String posterPath;
     private String author;
+    private String publisher;
     private List<GetCategoryDto> categories;
 
     private List<GetVolumenDto>volumenes;

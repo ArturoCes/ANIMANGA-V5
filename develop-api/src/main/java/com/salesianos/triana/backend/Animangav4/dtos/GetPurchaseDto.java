@@ -1,13 +1,7 @@
 package com.salesianos.triana.backend.Animangav4.dtos;
 
-import com.salesianos.triana.backend.Animangav4.models.Cart;
-import com.salesianos.triana.backend.Animangav4.models.Volumen;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
 
-import javax.persistence.ForeignKey;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -17,19 +11,19 @@ import java.util.UUID;
 @Getter
 @Setter
 public class GetPurchaseDto {
+
     private UUID idPurchase;
-
     private String numCreditCard;
-
     private UUID idCart;
-
     private UUID idUser;
-
+    private String username;
     private UUID idVolumen;
-
+    private String nombreVolumen;
+    private String nameManga;
+    private String posterPath;
+    private Integer quantity;
     private Double precio;
-
+    private Double total;
     private String fullName;
-
     private LocalDateTime purchaseDate;
 }

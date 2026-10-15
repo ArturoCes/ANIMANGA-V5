@@ -1,22 +1,21 @@
 package com.salesianos.triana.backend.Animangav4.service;
 
 import com.salesianos.triana.backend.Animangav4.dtos.*;
-import com.salesianos.triana.backend.Animangav4.exception.EmptyMangaListException;
+import com.salesianos.triana.backend.Animangav4.exception.BadRequestException;
 import com.salesianos.triana.backend.Animangav4.exception.EntityNotFoundException;
-import com.salesianos.triana.backend.Animangav4.exception.FavoriteException;
 import com.salesianos.triana.backend.Animangav4.exception.ForbiddenException;
 import com.salesianos.triana.backend.Animangav4.models.*;
+import com.salesianos.triana.backend.Animangav4.repository.ItemRepository;
 import com.salesianos.triana.backend.Animangav4.repository.MangaRepository;
-import com.salesianos.triana.backend.Animangav4.repository.UserRepository;
+import com.salesianos.triana.backend.Animangav4.repository.PurchaseRepository;
 import com.salesianos.triana.backend.Animangav4.repository.VolumenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -24,28 +23,21 @@ import java.util.UUID;
 public class VolumenService {
 
     private final VolumenRepository volumenRepository;
-
     private final StorageService storageService;
-
     private final MangaRepository mangaRepository;
-
     private final VolumenDtoConverter volumenDtoConverter;
+    private final PurchaseRepository purchaseRepository;
+    private final ItemRepository itemRepository;
 
-    private final UserRepository userRepository;
-
-    public Volumen save(UUID mangaId, CreateVolumenDto createVolumenDto, MultipartFile file) {
-
+    @Transactional
+    public Volumen save(UUID mangaId, CreateVolumenDto dto, MultipartFile file) {
+        Manga manga = mangaRepository.findById(mangaId)
+                .orElseThrow(() -> new EntityNotFoundException(mangaId.toString(), Manga.class));
+        validate(dto);
         String uri = storageService.store(file);
-        //   uri = storageService.uriComplete(uri);
-        Optional<Manga> m = mangaRepository.findById(mangaId);
-
-        if (m.isPresent()) {
-            Volumen v = volumenDtoConverter.createVolumenDtoToVolumen(createVolumenDto, uri);
-            v.addVolumenFromManga(m.get());
-            return volumenRepository.save(v);
-        } else {
-            throw new EntityNotFoundException(mangaId.toString(), Manga.class);
-        }
+        Volumen v = volumenDtoConverter.createVolumenDtoToVolumen(dto, uri);
+        v.addVolumenFromManga(manga);
+        return volumenRepository.save(v);
     }
 
     public Volumen findById(UUID id) {
@@ -53,75 +45,67 @@ public class VolumenService {
                 .orElseThrow(() -> new EntityNotFoundException(id.toString(), Volumen.class));
     }
 
-    public Volumen editVolumen(CreateVolumenDto cv, User user, UUID id) {
-        Optional<Manga> m = mangaRepository.findById(cv.getIdManga());
-        Optional<Volumen> v = volumenRepository.findById(id);
-
-        if (v.isEmpty()) {
-            throw new EntityNotFoundException(id.toString(), Volumen.class);
-        } else {
-            Optional<User> u = userRepository.findById(user.getId());
-
-            if (user.getRole().equals(UserRole.ADMIN)) {
-
-                if (m.isPresent()) {
-                    v.get().removeVolumenFromManga(v.get().getManga());
-                    v.get().addVolumenFromManga(m.get());
-                }
-                v.get().setNombre(cv.getNombre());
-                v.get().setCantidad(cv.getCantidad());
-                v.get().setPrecio(cv.getPrecio());
-
-                return volumenRepository.save(v.get());
-            } else {
-                throw new ForbiddenException("No tiene permisos para realizar esta acción");
-            }
+    @Transactional
+    public Volumen editVolumen(CreateVolumenDto dto, User user, UUID id) {
+        checkAdmin(user);
+        validate(dto);
+        Volumen v = findById(id);
+        if (dto.getIdManga() != null && (v.getManga() == null || !v.getManga().getId().equals(dto.getIdManga()))) {
+            Manga manga = mangaRepository.findById(dto.getIdManga())
+                    .orElseThrow(() -> new EntityNotFoundException(dto.getIdManga().toString(), Manga.class));
+            if (v.getManga() != null) v.removeVolumenFromManga(v.getManga());
+            v.addVolumenFromManga(manga);
         }
+        v.setNombre(dto.getNombre());
+        v.setCantidad(dto.getCantidad());
+        v.setPrecio(dto.getPrecio());
+        if (dto.getIsbn() != null) v.setIsbn(dto.getIsbn());
+        return volumenRepository.save(v);
     }
 
-
-
+    @Transactional
     public void deleteVolumen(UUID id) {
-        Optional<Volumen> v = volumenRepository.findById(id);
-        if (v.isEmpty()) {
-            throw new EntityNotFoundException(id.toString(), Volumen.class);
-        } else {
-            storageService.deleteFile(v.get().getPosterPath());
-            volumenRepository.deleteById(id);
+        Volumen v = findById(id);
+        if (purchaseRepository.existsByVolumen(v)) {
+            throw new BadRequestException("No se puede borrar un volumen con compras registradas");
         }
+        itemRepository.deleteByVolumen(v);
+        if (v.getManga() != null) {
+            v.removeVolumenFromManga(v.getManga());
+        }
+        volumenRepository.delete(v);
+        storageService.deleteFileQuietly(v.getPosterPath());
     }
 
     public Page<GetVolumenDto> findAllVolums(Pageable pageable) {
-        Page<Volumen> list = volumenRepository.findAll(pageable);
+        return volumenRepository.findAll(pageable).map(volumenDtoConverter::volumenToGetVolumenDto);
+    }
 
-        if (list.isEmpty()) {
-            throw new EmptyMangaListException(Manga.class);
-        } else {
-            return list.map(volumenDtoConverter::volumenToGetVolumenDto);
+    @Transactional
+    public Volumen editPosterPath(User user, MultipartFile file, UUID id) {
+        checkAdmin(user);
+        Volumen v = findById(id);
+        String uri = storageService.store(file);
+        storageService.deleteFileQuietly(v.getPosterPath());
+        v.setPosterPath(uri);
+        return volumenRepository.save(v);
+    }
+
+    private void validate(CreateVolumenDto dto) {
+        if (dto.getNombre() == null || dto.getNombre().isBlank()) {
+            throw new BadRequestException("Debe introducir el nombre del volumen");
+        }
+        if (dto.getPrecio() == null || dto.getPrecio() < 0) {
+            throw new BadRequestException("El precio debe ser un número positivo");
+        }
+        if (dto.getCantidad() == null || dto.getCantidad() < 0) {
+            throw new BadRequestException("El stock debe ser un número positivo");
         }
     }
 
-    public Volumen editPosterPath(User user, MultipartFile file, UUID id) {
-
-        Optional<Volumen> v1 = volumenRepository.findById(id);
-
-        if (v1.isEmpty()) {
-            throw new EntityNotFoundException(id.toString(), Manga.class);
-        } else {
-            Optional<User> u = userRepository.findById(user.getId());
-
-            if (user.getRole().equals(UserRole.ADMIN)) {
-                String uri = storageService.store(file);
-                uri = storageService.uriComplete(uri);
-
-                if (!v1.get().getPosterPath().isEmpty()) {
-                    storageService.deleteFile(v1.get().getPosterPath());
-                }
-                v1.get().setPosterPath(uri);
-                return volumenRepository.save(v1.get());
-            } else {
-                throw new ForbiddenException("No tiene permisos para realizar esta acción");
-            }
+    private void checkAdmin(User user) {
+        if (user.getRole() != UserRole.ADMIN) {
+            throw new ForbiddenException("No tiene permisos para realizar esta acción");
         }
     }
 }

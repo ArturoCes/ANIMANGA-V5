@@ -31,11 +31,7 @@ public class CharacterService {
         Manga manga = mangaRepository.findById(id).orElseThrow(() -> new MangaNotFoundException());
         Page<Character> characters = characterRepository.findByManga(manga, pageable);
 
-        if (characters.isEmpty()) {
-            throw new EmptyCharacterListException(Character.class);
-        } else {
-            return characters.map(characterDtoConverter::entityToDto);
-        }
+        return characters.map(characterDtoConverter::entityToDto);
     }
 
 

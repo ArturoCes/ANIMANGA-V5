@@ -16,6 +16,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import org.springframework.transaction.annotation.Transactional;
+import com.salesianos.triana.backend.Animangav4.models.Manga;
+import com.salesianos.triana.backend.Animangav4.repository.MangaRepository;
 import java.util.UUID;
 
 import java.util.Optional;
@@ -27,6 +31,7 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     private final CategoryDtoConverter categoryDtoConverter;
+    private final MangaRepository mangaRepository;
 
 
     public GetCategoryDto save(CreateCategoryDto createCategoryDto, User user){
@@ -61,35 +66,27 @@ public class CategoryService {
         }
     }
 
+    @Transactional
     public void deleteCategory (UUID id) {
-        Optional<Category> c = categoryRepository.findById(id);
-
-        if(c.isEmpty()) {
-            throw new EntityNotFoundException(id.toString(), Category.class);
-        } else {
-            categoryRepository.deleteById(id);
+        Category c = categoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(id.toString(), Category.class));
+        // Se desvincula de los mangas antes de borrarla para no romper la FK
+        for (Manga m : mangaRepository.findAllByCategoriesContains(c)) {
+            m.getCategories().remove(c);
+            mangaRepository.save(m);
         }
+        categoryRepository.delete(c);
     }
 
     public Page<GetCategoryDto> findAllCategories (Pageable pageable) {
-        Page<Category> lista = categoryRepository.findAll(pageable);
-
-        if(lista.isEmpty()) {
-            throw new ListNotFoundException(Category.class);
-        } else {
-            return lista.map(categoryDtoConverter::categoryToCategoryDto);
-        }
+        return categoryRepository.findAll(pageable).map(categoryDtoConverter::categoryToCategoryDto);
     }
 
     public Page<GetCategoryDto> searchCategory(User user, SearchCategoryDto s, Pageable pageable){
         if(user.getRole().equals(UserRole.ADMIN)){
             Page<Category> lista = search(Optional.ofNullable(s.getName()),
                     Optional.ofNullable(s.getDescription()), pageable);
-            if(lista.isEmpty()){
-                throw new ListNotFoundException(Category.class);
-            } else {
-                return lista.map(categoryDtoConverter::categoryToCategoryDto);
-            }
+            return lista.map(categoryDtoConverter::categoryToCategoryDto);
         }else{
             throw new ForbiddenException("No tiene permisos para realizar esta acción");
         }

@@ -6,6 +6,7 @@ import com.salesianos.triana.backend.Animangav4.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import com.salesianos.triana.backend.Animangav4.models.Category;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -22,4 +23,6 @@ public interface MangaRepository extends JpaRepository<Manga, UUID> {
     Page<Manga> findByCategoryName(String name, Pageable pageable);
 
     Page<Manga> findByNameIgnoreCaseContains(String name, Pageable pageable);
+
+    List<Manga> findAllByCategoriesContains(Category category);
 }

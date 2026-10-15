@@ -36,8 +36,6 @@ public class PurchaseController {
 
     private final PaginationLinksUtils paginationLinksUtils;
 
-    private final PurchaseDtoConverter purchaseDtoConverter;
-
     @Operation(summary = "Crea una linea de venta")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201",
@@ -50,7 +48,7 @@ public class PurchaseController {
     })
     @PostMapping("/new")
     public ResponseEntity<Page<GetPurchaseDto>> createPurchase(@PageableDefault(size = 10, page = 0) Pageable pageable,
-                                                               HttpServletRequest request, @RequestBody CreatePurchaseDto createPurchaseDto, @AuthenticationPrincipal User user) {
+                                                               HttpServletRequest request, @Valid @RequestBody CreatePurchaseDto createPurchaseDto, @AuthenticationPrincipal User user) {
         Page<GetPurchaseDto> list = purchaseService.save(user, createPurchaseDto, pageable);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(list);
@@ -70,9 +68,16 @@ public class PurchaseController {
     public ResponseEntity<Page<GetPurchaseDto>> findAll(@PageableDefault(size = 10, page = 0) Pageable pageable,
                                                            @AuthenticationPrincipal User user,
                                                            @NotNull HttpServletRequest request) {
-        Page<GetPurchaseDto> list = purchaseService.findAll(pageable).map(purchaseDtoConverter::purchaseToGetPurchaseDto);
+        Page<GetPurchaseDto> list = purchaseService.findAll(pageable);
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(request.getRequestURL().toString());
         return ResponseEntity.ok().header("link", paginationLinksUtils.createLinkHeader(list, uriBuilder)).body(list);
+    }
+
+    @Operation(summary = "Listar las compras del usuario autenticado")
+    @GetMapping("/me")
+    public ResponseEntity<Page<GetPurchaseDto>> findMine(@PageableDefault(size = 20, page = 0) Pageable pageable,
+                                                         @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(purchaseService.findMine(user, pageable));
     }
 
 }

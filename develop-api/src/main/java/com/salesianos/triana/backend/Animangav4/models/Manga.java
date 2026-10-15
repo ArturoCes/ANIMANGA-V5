@@ -61,9 +61,11 @@ public class Manga implements Serializable {
     @Builder.Default
     @OneToMany(mappedBy = "manga", orphanRemoval = true)
     private List<Volumen> tomos = new ArrayList<>();
+    @Builder.Default
     @OneToMany(mappedBy = "manga", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Character> characters = new ArrayList<>();
 
+    @Builder.Default
     @ManyToMany(mappedBy = "favoritos", fetch = FetchType.EAGER)
-    private List<User> usersMangaFavorite;
+    private List<User> usersMangaFavorite = new ArrayList<>();
 }

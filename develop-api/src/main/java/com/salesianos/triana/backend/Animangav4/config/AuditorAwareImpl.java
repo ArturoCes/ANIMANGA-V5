@@ -15,8 +15,11 @@ public class AuditorAwareImpl implements AuditorAware<String> {
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
 
+        // En peticiones anónimas (registro, login) el principal es un String
         return Optional.ofNullable(authentication)
-                .map(auth -> (User) auth.getPrincipal())
+                .map(Authentication::getPrincipal)
+                .filter(User.class::isInstance)
+                .map(User.class::cast)
                 .map(User::getId)
                 .map(UUID::toString);
 

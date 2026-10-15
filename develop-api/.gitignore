@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Datos locales ###
+/uploads/
+/uploads_runtime/
+/db/
+*.mv.db
+*.trace.db

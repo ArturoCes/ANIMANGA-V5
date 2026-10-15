@@ -2,6 +2,7 @@ package com.salesianos.triana.backend.Animangav4.service;
 
 
 import com.salesianos.triana.backend.Animangav4.dtos.*;
+import com.salesianos.triana.backend.Animangav4.exception.BadRequestException;
 import com.salesianos.triana.backend.Animangav4.exception.EntityNotFoundException;
 import com.salesianos.triana.backend.Animangav4.exception.ForbiddenException;
 import com.salesianos.triana.backend.Animangav4.exception.ListNotFoundException;
@@ -9,6 +10,8 @@ import com.salesianos.triana.backend.Animangav4.models.Cart;
 import com.salesianos.triana.backend.Animangav4.models.User;
 import com.salesianos.triana.backend.Animangav4.models.UserRole;
 import com.salesianos.triana.backend.Animangav4.repository.CartRepository;
+import com.salesianos.triana.backend.Animangav4.repository.PurchaseRepository;
+import com.salesianos.triana.backend.Animangav4.security.jwt.refresh.RefreshTokenRepository;
 import com.salesianos.triana.backend.Animangav4.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,8 +19,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +38,8 @@ public class UserService {
     private final UserDtoConverter userDtoConverter;
 
     private final CartRepository cartRepository;
+    private final PurchaseRepository purchaseRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     public User createUser(CreateUserDto createUserRequest, UserRole role) {
         Cart c = new Cart();
@@ -40,7 +47,7 @@ public class UserService {
                         .getUsername()).fullName(createUserRequest.getFullName())
                 .email(createUserRequest.getEmail())
                 .password(passwordEncoder.encode(createUserRequest.getPassword()))
-                .image(createUserRequest.getImage() == null ? "https://i.ibb.co/stxTwKC/user.png" : createUserRequest.getImage())
+                .image(createUserRequest.getImage() == null ? "https://ui-avatars.com/api/?background=7b1fa2&color=fff&name=" + createUserRequest.getFullName().trim().replace(" ", "+") : createUserRequest.getImage())
                 .role(role).build();
         userRepository.save(user);
         c.setUser(user);
@@ -65,7 +72,10 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public GetUserDto findById2(UUID id) {
+    public GetUserDto findById2(UUID id, User principal) {
+        if (!principal.getId().equals(id) && principal.getRole() != UserRole.ADMIN) {
+            throw new ForbiddenException("Permisos insuficientes");
+        }
         Optional<User> u = userRepository.findById(id);
         if (u.isPresent()) {
             return userDtoConverter.userToGetUserDto(u.get());
@@ -123,6 +133,9 @@ public class UserService {
     }
 
     public User removeAdmin (User user, UUID idUser){
+        if (user.getId().equals(idUser)) {
+            throw new BadRequestException("No puede quitarse el rol de administrador a sí mismo");
+        }
         if(user.getRole().equals(UserRole.ADMIN)){
             Optional<User> u = userRepository.findById(idUser);
             if(u.isPresent()){
@@ -161,30 +174,41 @@ public class UserService {
         return passwordEncoder.matches(clearPassword, user.getPassword());
     }
     public User changePassword(PasswordDto passwordDto, User user) {
-        Optional<User> u = userRepository.findById(user.getId());
+        User u = userRepository.findById(user.getId())
+                .orElseThrow(() -> new EntityNotFoundException(user.getId().toString(), User.class));
 
-        if(u.isEmpty()){
-            throw new EntityNotFoundException(user.getId().toString(), User.class);
-        } else {
-            if(passwordEncoder.matches(passwordDto.getPassword(), user.getPassword())){
-                if(passwordDto.getPasswordNew().equals(passwordDto.getPasswordNewVerify())){
-                    u.get().setPassword(passwordEncoder.encode(passwordDto.getPasswordNew()));
-                }
-                return userRepository.save(u.get());
-            }else {
-                throw new EntityNotFoundException(user.getId().toString(), User.class);
-            }
-
+        if (!passwordEncoder.matches(passwordDto.getPassword(), u.getPassword())) {
+            throw new BadRequestException("La contraseña actual no es correcta");
         }
+        if (!passwordDto.getPasswordNew().equals(passwordDto.getPasswordNewVerify())) {
+            throw new BadRequestException("Las contraseñas nuevas no coinciden");
+        }
+        u.setPassword(passwordEncoder.encode(passwordDto.getPasswordNew()));
+        u.setLastPasswordChangeAt(LocalDateTime.now());
+        return userRepository.save(u);
     }
-    public Page<GetUserDto> findAllUsers (Pageable pageable) {
-        Page<User> lista = userRepository.findAll(pageable);
 
-        if(lista.isEmpty()) {
-            throw new ListNotFoundException(User.class);
-        } else {
-            return lista.map(userDtoConverter::userToGetUserDto);
+    @Transactional
+    public void deleteUser(User principal, UUID id) {
+        if (principal.getRole() != UserRole.ADMIN) {
+            throw new ForbiddenException("No tiene permisos para realizar esta acción");
         }
+        if (principal.getId().equals(id)) {
+            throw new BadRequestException("No puede eliminar su propia cuenta");
+        }
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(id.toString(), User.class));
+        if (!purchaseRepository.findByCartUserOrderByPurchaseDateDesc(u, Pageable.ofSize(1)).isEmpty()) {
+            throw new BadRequestException("No se puede eliminar un usuario con compras registradas");
+        }
+        refreshTokenRepository.deleteByUser(u);
+        u.getFavoritos().forEach(m -> m.getUsersMangaFavorite().remove(u));
+        u.getFavoritos().clear();
+        userRepository.delete(u);
+    }
+
+    public Page<GetUserDto> findAllUsers (Pageable pageable) {
+        return userRepository.findAll(pageable).map(userDtoConverter::userToGetUserDto);
     }
     private Page<User> find(Optional<String> username, Optional<String> fullname, Optional<String> email
             , Optional<UserRole> role, Pageable pageable) {

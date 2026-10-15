@@ -57,7 +57,17 @@ public class FileSystemStorageService implements StorageService{
     public String store(byte[] file, String filename, String contentType) throws Exception {
 
         // Limpiamos el nombre del fichero
-        String newFilename = StringUtils.cleanPath(filename);
+        String newFilename = StringUtils.cleanPath(filename == null ? "file" : filename)
+                .replaceAll("[^a-zA-Z0-9._-]", "_");
+
+        if (newFilename.contains("..")) {
+            throw new StorageException("Nombre de fichero no válido: " + filename);
+        }
+        // El tipo se detecta por el contenido, no solo por lo que declara el cliente
+        String detected = new org.apache.tika.Tika().detect(file, newFilename);
+        if (!detected.startsWith("image/")) {
+            throw new StorageException("Solo se permiten imágenes");
+        }
 
         if (file.length == 0)
             throw new Exception("The file is empty");
@@ -109,7 +119,11 @@ public class FileSystemStorageService implements StorageService{
 
     @Override
     public Path load(String filename) {
-        return rootLocation.resolve(filename);
+        Path file = rootLocation.resolve(filename).normalize();
+        if (!file.startsWith(rootLocation.normalize())) {
+            throw new StorageException("Ruta no permitida: " + filename);
+        }
+        return file;
     }
 
     @Override
@@ -136,6 +150,16 @@ public class FileSystemStorageService implements StorageService{
             Files.delete(load(filename));
         } catch (IOException e) {
             throw new StorageException("Could not delete file:" + filename);
+        }
+    }
+
+    @Override
+    public void deleteFileQuietly(String filename) {
+        if (filename == null || filename.isBlank() || filename.startsWith("http")) return;
+        try {
+            Files.deleteIfExists(load(filename));
+        } catch (IOException ignored) {
+            // No es crítico: el fichero puede no existir
         }
     }
 

@@ -18,6 +18,7 @@ public class MangaDtoConverter {
                 .description(createMangaDto.getDescription())
                 .releaseDate(createMangaDto.getReleaseDate())
                 .author(createMangaDto.getAuthor())
+                .publisher(createMangaDto.getPublisher())
                 .posterPath(uri)
                 .build();
     }
@@ -30,6 +31,7 @@ public class MangaDtoConverter {
                 .posterPath(m.getPosterPath())
                 .releaseDate(m.getReleaseDate())
                 .author(m.getAuthor())
+                .publisher(m.getPublisher())
                 .categories(m.getCategories().stream()
                         .map(categoryDtoConverter::categoryToCategoryDto).collect(Collectors.toList()))
                 .volumenes(m.getTomos().stream()

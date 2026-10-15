@@ -4,6 +4,7 @@ import com.salesianos.triana.backend.Animangav4.security.jwt.access.JwtAuthentic
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -11,7 +12,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,13 +38,8 @@ public class SecurityConfig {
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
 
-
-        AuthenticationManager authenticationManager =
-                authenticationManagerBuilder.authenticationProvider(authenticationProvider())
-                        .build();
-
-        return authenticationManager;
-
+        return authenticationManagerBuilder.authenticationProvider(authenticationProvider())
+                .build();
     }
 
 
@@ -54,10 +49,10 @@ public class SecurityConfig {
 
         authenticationProvider.setUserDetailsService(userDetailsService);
         authenticationProvider.setPasswordEncoder(passwordEncoder);
-        authenticationProvider.setHideUserNotFoundExceptions(false);
+        // No revelamos si el usuario existe o no: siempre "Bad credentials"
+        authenticationProvider.setHideUserNotFoundExceptions(true);
 
         return authenticationProvider;
-
     }
 
 
@@ -75,31 +70,41 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/manga/**").hasAnyRole("USER", "ADMIN")
-                .antMatchers("/volumen/**").hasAnyRole("USER", "ADMIN")
-                .antMatchers("/category/**").hasAnyRole("USER", "ADMIN")
-                .antMatchers( "/download/*").anonymous()
-                .antMatchers("/category/**").hasAnyRole("USER", "ADMIN")
-                .antMatchers("/user/**").anonymous()
+                // Público
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .antMatchers("/auth/login", "/auth/register", "/refreshtoken").permitAll()
+                .antMatchers(HttpMethod.GET, "/download/**").permitAll()
+                .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**").permitAll()
+                .antMatchers("/h2-console/**").permitAll()
+
+                // Solo administradores
                 .antMatchers("/auth/register/admin").hasRole("ADMIN")
+                .antMatchers("/upload", "/upload/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.GET, "/all").hasRole("ADMIN")
+                .antMatchers(HttpMethod.POST, "/find/").hasRole("ADMIN")
+                .antMatchers("/give/admin/**", "/remove/admin/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.GET, "/purchase/all").hasRole("ADMIN")
+                .antMatchers(HttpMethod.POST, "/category/find/").hasRole("ADMIN")
+
+                // Favoritos y búsqueda: cualquier usuario autenticado
+                .antMatchers("/manga/favorite/**", "/manga/all/favorite/**").authenticated()
+                .antMatchers(HttpMethod.POST, "/manga/search/all").authenticated()
+
+                // Escritura de catálogo: solo administradores
+                .antMatchers(HttpMethod.POST, "/manga/**", "/volumen/**", "/category/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.PUT, "/manga/**", "/volumen/**", "/category/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.DELETE, "/manga/**", "/volumen/**", "/category/**").hasRole("ADMIN")
+
+                // Lectura de catálogo, carrito, compras propias y perfil
                 .anyRequest().authenticated();
 
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-
-        http.headers().frameOptions().disable();
+        // Necesario para la consola H2 en desarrollo
+        http.headers().frameOptions().sameOrigin();
 
         return http.build();
     }
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web -> web.ignoring().antMatchers("/h2-console/**","/auth/register", "/auth/login", "/v3/api-docs/**","/user/**",
-                "/swagger-ui/**",
-                "/swagger-ui.html",
-                "/swagger-resources/**"));
-    }
-
 
 }

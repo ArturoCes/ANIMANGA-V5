@@ -21,6 +21,8 @@ public class CreateMangaDto {
     private LocalDate releaseDate;
 
     private String author;
+
+    private String publisher;
     @NotEmpty(message = "{manga.category.list.empty}")
     private List<Category> categories = new ArrayList<>();
 }

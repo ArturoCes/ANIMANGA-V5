@@ -141,8 +141,15 @@ public class UserController {
                     content = @Content),
     })
     @GetMapping("/{id}")
-    public GetUserDto findMangaById(@PathVariable UUID id) {
-        return userService.findById2(id);
+    public GetUserDto findUserById(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        return userService.findById2(id, user);
+    }
+
+    @Operation(summary = "Eliminar un usuario (solo administradores)")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        userService.deleteUser(user, id);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Se muestra los datos del usuario logueado")

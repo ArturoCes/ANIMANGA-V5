@@ -1,15 +1,10 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  standalone: true,
+  imports: [RouterOutlet],
+  template: '<router-outlet />',
 })
-export class AppComponent {
-
-  title = 'animangav5-angular';
-
-  constructor(public router: Router ) {}
-
-}
+export class AppComponent {}

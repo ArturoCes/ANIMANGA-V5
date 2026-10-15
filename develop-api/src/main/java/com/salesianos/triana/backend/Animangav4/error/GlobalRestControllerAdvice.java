@@ -8,6 +8,8 @@ import com.salesianos.triana.backend.Animangav4.exception.EntityNotFound;
 import com.salesianos.triana.backend.Animangav4.exception.ForbiddenException;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.dao.DataIntegrityViolationException;
+import com.salesianos.triana.backend.Animangav4.exception.StorageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -41,6 +43,19 @@ public class GlobalRestControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler({ForbiddenException.class})
     public ResponseEntity<?> handleUnauthorizedException(ForbiddenException ex, WebRequest request) {
         return buildApiError403(ex, request);
+    }
+
+    @ExceptionHandler({StorageException.class, IllegalArgumentException.class})
+    public ResponseEntity<?> handleStorageException(RuntimeException ex, WebRequest request) {
+        return buildApiError400(ex, request);
+    }
+
+    @ExceptionHandler({DataIntegrityViolationException.class})
+    public ResponseEntity<?> handleDataIntegrity(DataIntegrityViolationException ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiError(HttpStatus.CONFLICT,
+                        "La operación entra en conflicto con otros datos relacionados",
+                        ((ServletWebRequest) request).getRequest().getRequestURI()));
     }
 
     @ExceptionHandler({ConstraintViolationException.class})

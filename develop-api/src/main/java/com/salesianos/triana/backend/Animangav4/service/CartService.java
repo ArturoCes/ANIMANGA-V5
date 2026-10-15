@@ -2,84 +2,89 @@ package com.salesianos.triana.backend.Animangav4.service;
 
 import com.salesianos.triana.backend.Animangav4.dtos.ItemDto;
 import com.salesianos.triana.backend.Animangav4.dtos.ItemDtoConverter;
+import com.salesianos.triana.backend.Animangav4.exception.BadRequestException;
 import com.salesianos.triana.backend.Animangav4.exception.EntityNotFoundException;
+import com.salesianos.triana.backend.Animangav4.exception.ForbiddenException;
 import com.salesianos.triana.backend.Animangav4.models.*;
-
 import com.salesianos.triana.backend.Animangav4.repository.CartRepository;
 import com.salesianos.triana.backend.Animangav4.repository.ItemRepository;
 import com.salesianos.triana.backend.Animangav4.repository.UserRepository;
 import com.salesianos.triana.backend.Animangav4.repository.VolumenRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CartService {
 
-
     private final CartRepository cartRepository;
-
-
     private final VolumenRepository volumenRepository;
-
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
-
     private final ItemDtoConverter itemDtoConverter;
-    public void addItemToCart(UUID userId, UUID volumenId) {
-        Optional<User> user = userRepository.findById(userId);
-        Optional<Volumen> volumen = volumenRepository.findById(volumenId);
 
-        if (user.isPresent() && volumen.isPresent()) {
-            User userData = user.get();
-            Cart cart = userData.getCarrito();
+    @Transactional
+    public void addItemToCart(User principal, UUID userId, UUID volumenId) {
+        Cart cart = ownCart(principal, userId);
+        Volumen volumen = volumenRepository.findById(volumenId)
+                .orElseThrow(() -> new EntityNotFoundException(volumenId.toString(), Volumen.class));
 
-            Item item = new Item();
-            item.setCart(cart);
-            item.setVolumen(volumen.get());
-            item.setQuantity(1);  // O puedes agregar lógica para aumentar la cantidad si ya existe en el carrito
+        Item item = itemRepository.findByCartAndVolumen(cart, volumen).orElse(null);
+        int nuevaCantidad = item == null ? 1 : item.getQuantity() + 1;
 
+        if (volumen.getCantidad() == null || nuevaCantidad > volumen.getCantidad()) {
+            throw new BadRequestException("No hay stock suficiente de " + volumen.getNombre());
+        }
+
+        if (item == null) {
+            item = Item.builder().cart(cart).volumen(volumen).quantity(1).build();
+        } else {
+            item.setQuantity(nuevaCantidad);
+        }
+        itemRepository.save(item);
+    }
+
+    @Transactional
+    public void removeItemFromCart(User principal, UUID userId, UUID volumenId) {
+        Cart cart = ownCart(principal, userId);
+        Volumen volumen = volumenRepository.findById(volumenId)
+                .orElseThrow(() -> new EntityNotFoundException(volumenId.toString(), Volumen.class));
+
+        Item item = itemRepository.findByCartAndVolumen(cart, volumen)
+                .orElseThrow(() -> new BadRequestException("El volumen no está en el carrito"));
+
+        if (item.getQuantity() > 1) {
+            item.setQuantity(item.getQuantity() - 1);
             itemRepository.save(item);
         } else {
-            throw new EntityNotFoundException(volumenId.toString(), User.class); // Manejar el caso en que el usuario o el volumen no existen
+            cart.getItems().remove(item);
+            itemRepository.delete(item);
         }
     }
 
-    public void removeItemFromCart(UUID userId, UUID volumenId) {
-        Optional<User> user = userRepository.findById(userId);
-        Optional<Volumen> volumen = volumenRepository.findById(volumenId);
-
-        if (user.isPresent() && volumen.isPresent()) {
-            User userData = user.get();
-            Cart cart = userData.getCarrito();
-
-            Optional<Item> item = itemRepository.findByCartAndVolumen(cart, volumen.get());
-
-            if (item.isPresent()) {
-                itemRepository.delete(item.get());
-            } else {
-                // Manejar el caso en que el ítem no existe en el carrito
-            }
-        } else {
-            throw new EntityNotFoundException(volumenId.toString(), User.class); // Manejar el caso en que el usuario o el volumen no existen
-        }
+    @Transactional(readOnly = true)
+    public Page<ItemDto> getAllItemsByCartId(User principal, UUID cartId, Pageable pageable) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new EntityNotFoundException(cartId.toString(), Cart.class));
+        checkOwner(principal, cart.getUser().getId());
+        return itemRepository.findByCartId(cartId, pageable).map(itemDtoConverter::itemToItemDto);
     }
 
+    private Cart ownCart(User principal, UUID userId) {
+        checkOwner(principal, userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(userId.toString(), User.class));
+        return user.getCarrito();
+    }
 
-    public Page<ItemDto> getAllItemsByCartId(UUID cartId, Pageable pageable) {
-        Page<Item> itemsPage = itemRepository.findByCartId(cartId, pageable);
-
-        if (itemsPage.isEmpty()) {
-            throw new IllegalArgumentException("No items found for the user");
-        } else {
-            return itemsPage.map(itemDtoConverter::itemToItemDto);
+    private void checkOwner(User principal, UUID ownerId) {
+        if (!principal.getId().equals(ownerId) && principal.getRole() != UserRole.ADMIN) {
+            throw new ForbiddenException("No puede acceder al carrito de otro usuario");
         }
     }
 

@@ -43,7 +43,14 @@ public class Purchase implements Serializable{
     @CreatedDate
     private LocalDateTime purchaseDate;
 
+    // Solo se guarda la tarjeta enmascarada (**** **** **** 1234), nunca el número completo
     private String numCreditCard;
+
+    @Builder.Default
+    private Integer quantity = 1;
+
+    // Precio unitario en el momento de la compra
+    private Double unitPrice;
 
     @ManyToOne
     @JoinColumn(name = "cart", foreignKey = @ForeignKey(name = "FK_PURCHASE_CART"))

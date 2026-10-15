@@ -22,6 +22,9 @@ public interface StorageService {
 
     void deleteFile(String filename);
 
+    /** Borra el fichero si existe, sin lanzar error si no está. */
+    void deleteFileQuietly(String filename);
+
     void deleteAll();
 
     String uriComplete(String filename);
