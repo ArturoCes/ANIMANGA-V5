@@ -34,7 +34,7 @@ build/
 
 ### Datos locales ###
 /uploads/
-/uploads_runtime/
+/uploads_*/
 /db/
 *.mv.db
 *.trace.db

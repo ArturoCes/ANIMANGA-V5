@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -14,6 +15,8 @@ export class NotifyService {
   }
 
   error(messageOrError: unknown): void {
+    // Las sesiones caducadas ya las gestiona el interceptor con su propio aviso
+    if (messageOrError instanceof HttpErrorResponse && messageOrError.status === 401) return;
     const message = typeof messageOrError === 'string' ? messageOrError : errorMessage(messageOrError);
     this.snack.open(message, 'Cerrar', { duration: 6000, panelClass: 'snack-error' });
   }

@@ -1,51 +1,62 @@
-import 'package:animangav4frontend/pages/cart_page.dart';
-import 'package:animangav4frontend/pages/mangas_favorites_page.dart';
-import 'package:animangav4frontend/pages/navigation_bard.dart';
-import 'package:animangav4frontend/pages/pages.dart';
-import 'package:animangav4frontend/pages/password_page.dart';
-import 'package:animangav4frontend/pages/profile_page.dart';
-import 'package:animangav4frontend/pages/purchase_page.dart';
-import 'package:animangav4frontend/pages/search_page.dart';
 import 'package:flutter/material.dart';
-import 'package:get_storage/get_storage.dart';
-import 'config/locator.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'core/api_client.dart';
+import 'core/theme.dart';
+import 'data/repositories.dart';
+import 'state/auth_cubit.dart';
+import 'ui/auth/login_page.dart';
+import 'ui/home_shell.dart';
+
 Future<void> main() async {
-  await GetStorage.init();
-  //WidgetsFlutterBinding.ensureInitialized();
-  //await SharedPreferences.getInstance();
-  setupAsyncDependencies();
-  configureDependencies();
-  initializeDateFormatting().then((_) => runApp(MyApp()));
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('es_ES');
+
+  final api = ApiClient();
+  runApp(AnimangaApp(api: api));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class AnimangaApp extends StatelessWidget {
+  const AnimangaApp({super.key, required this.api});
+
+  final ApiClient api;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: 'Authentication Demo',
-        theme: ThemeData(
-            primarySwatch: Colors.purple,
-            appBarTheme: AppBarTheme(
-                backgroundColor: Color.fromARGB(255, 201, 21, 162))),
-        initialRoute: "/login",
-        routes: {
-          '/login': (context) => const LoginPage(),
-          '/manga': (context) => const MangasPage(),
-          '/register': (context) => const RegisterPage(),
-          '/detail': (context) => const MangaPage(),
-          '/changepassword': (context) => const PasswordPage(),
-          '/profile': (context) => const ProfilePage(),
-          '/favorite': (context) => const FavoritesPage(),
-          '/search':(context) => const SearchScreen(),
-          '/cart':(context) => const CartPage(),
-          '/purchase': (context) => const PurchasePage(),
-          '/': (context) => const BottomNavBar(),
-        });
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider.value(value: api),
+        RepositoryProvider(create: (_) => AuthRepository(api)),
+        RepositoryProvider(create: (_) => CatalogRepository(api)),
+        RepositoryProvider(create: (_) => ShopRepository(api)),
+        RepositoryProvider(create: (_) => ProfileRepository(api)),
+      ],
+      child: BlocProvider(
+        create: (context) => AuthCubit(api, context.read<AuthRepository>())..restore(),
+        child: MaterialApp(
+          title: 'Animanga',
+          debugShowCheckedModeBanner: false,
+          theme: buildTheme(),
+          locale: const Locale('es', 'ES'),
+          supportedLocales: const [Locale('es', 'ES')],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: BlocBuilder<AuthCubit, AuthState>(
+            buildWhen: (prev, next) => prev.runtimeType != next.runtimeType,
+            builder: (context, state) => switch (state) {
+              AuthLoading() => const Scaffold(body: Center(child: CircularProgressIndicator())),
+              Unauthenticated() => const LoginPage(),
+              // La clave fuerza a recrear la sesión si cambia de usuario
+              Authenticated(:final user) => HomeShell(key: ValueKey(user.id)),
+            },
+          ),
+        ),
+      ),
+    );
   }
 }
- 

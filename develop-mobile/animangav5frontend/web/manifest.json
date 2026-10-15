@@ -1,11 +1,11 @@
 {
-    "name": "animangav4frontend",
-    "short_name": "animangav4frontend",
+    "name": "Animanga",
+    "short_name": "Animanga",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F6F5FB",
+    "theme_color": "#673AB7",
+    "description": "Tienda online de manga",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

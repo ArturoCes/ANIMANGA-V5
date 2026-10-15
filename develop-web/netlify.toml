@@ -1,0 +1,20 @@
+# Netlify: base directory = develop-web
+[build]
+  command = "npm ci && npm run build"
+  publish = "dist/develop-web"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# La API se sirve a través de Netlify para evitar CORS.
+# Sustituye la URL por la de tu backend desplegado.
+[[redirects]]
+  from = "/api/*"
+  to = "https://animanga-api.onrender.com/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

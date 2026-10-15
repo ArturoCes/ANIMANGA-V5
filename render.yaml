@@ -1,0 +1,14 @@
+# Blueprint de Render para la API (plan gratuito, perfil "demo" con H2 en memoria).
+# Render → New → Blueprint → selecciona este repositorio.
+services:
+  - type: web
+    name: animanga-api
+    runtime: docker
+    rootDir: develop-api
+    plan: free
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: demo
+      - key: JWT_SECRET
+        generateValue: true

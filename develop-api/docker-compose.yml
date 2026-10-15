@@ -1,13 +1,23 @@
-
+# Stack local con PostgreSQL:  docker compose up --build
 services:
-
   db:
-    image: 'postgres:14-alpine'
-    container_name: db
-    restart: always
+    image: postgres:16-alpine
     environment:
-      - POSTGRES_DB=animanga
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
+      POSTGRES_DB: animanga
+      POSTGRES_USER: animanga
+      POSTGRES_PASSWORD: animanga
     ports:
       - "5555:5432"
+
+  api:
+    build: .
+    depends_on:
+      - db
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://db:5432/animanga
+      DATABASE_USERNAME: animanga
+      DATABASE_PASSWORD: animanga
+      JWT_SECRET: cambia-esto-por-un-secreto-largo-de-al-menos-64-caracteres-para-hs512-0000000000
+    ports:
+      - "8080:8080"
