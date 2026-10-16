@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -32,18 +33,30 @@ class CoverImage extends StatelessWidget {
       borderRadius: BorderRadius.circular(radius),
       child: url.isEmpty
           ? placeholder
-          : CachedNetworkImage(
-              imageUrl: url,
+          : Image(
+              image: imageProvider(url),
               width: width,
               height: height,
               fit: BoxFit.cover,
-              fadeInDuration: const Duration(milliseconds: 200),
-              placeholder: (_, __) => placeholder,
-              errorWidget: (_, __, ___) => placeholder,
+              // Al reconstruir la tarjeta se mantiene la imagen anterior en vez de parpadear
+              gaplessPlayback: true,
+              frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
+                // Ya decodificada (caché en memoria): se pinta directamente, sin transición
+                if (wasSynchronouslyLoaded) return child;
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: frame == null ? placeholder : child,
+                );
+              },
+              errorBuilder: (_, __, ___) => placeholder,
             ),
     );
   }
 }
+
+/// En móvil, caché en disco; en web, la caché HTTP del navegador (la API envía Cache-Control).
+/// En ambos casos Flutter guarda en memoria las imágenes ya decodificadas.
+ImageProvider imageProvider(String url) => kIsWeb ? NetworkImage(url) : CachedNetworkImageProvider(url);
 
 class UserAvatar extends StatelessWidget {
   const UserAvatar({super.key, required this.avatar, required this.name, this.radius = 24});
@@ -58,7 +71,7 @@ class UserAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: radius,
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      foregroundImage: CachedNetworkImageProvider(AppConfig.avatarUrl(avatar, name)),
+      foregroundImage: imageProvider(AppConfig.avatarUrl(avatar, name)),
       // Si la imagen no carga se quedan las iniciales
       onForegroundImageError: (_, __) {},
       child: Text(initials, style: TextStyle(fontSize: radius * 0.7, fontWeight: FontWeight.w600)),
