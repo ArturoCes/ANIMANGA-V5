@@ -103,18 +103,18 @@ export class UserFormDialog {
                 <img class="avatar" [src]="avatar(u.avatar, u.fullName)" alt="" />
                 <div>
                   <strong>{{ u.fullName }}</strong>
-                  <div class="muted small">&#64;{{ u.username }}</div>
+                  <div class="muted small">&#64;{{ u.username }}<span class="show-md">{{ u.email }}</span></div>
                 </div>
               </div>
             </td>
           </ng-container>
           <ng-container matColumnDef="email">
-            <th mat-header-cell *matHeaderCellDef>Email</th>
-            <td mat-cell *matCellDef="let u">{{ u.email }}</td>
+            <th mat-header-cell *matHeaderCellDef class="hide-md">Email</th>
+            <td mat-cell *matCellDef="let u" class="hide-md">{{ u.email }}</td>
           </ng-container>
           <ng-container matColumnDef="role">
-            <th mat-header-cell *matHeaderCellDef>Rol</th>
-            <td mat-cell *matCellDef="let u">
+            <th mat-header-cell *matHeaderCellDef class="hide-sm">Rol</th>
+            <td mat-cell *matCellDef="let u" class="hide-sm">
               <span class="badge" [class.badge-brand]="u.role === 'ADMIN'">{{ u.role === 'ADMIN' ? 'Administrador' : 'Cliente' }}</span>
               <mat-icon class="unverified" *ngIf="!u.emailVerified" matTooltip="Email sin verificar">mark_email_unread</mat-icon>
             </td>

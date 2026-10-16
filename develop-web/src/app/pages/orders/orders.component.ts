@@ -21,10 +21,10 @@ const NEXT: Record<OrderStatus, OrderStatus[]> = {
   standalone: true,
   imports: [...UI, StatusBadgeComponent],
   template: `
-    <div class="dialog-head">
+    <div mat-dialog-title class="dialog-head">
       <div>
-        <h2 mat-dialog-title>Pedido {{ order.number }}</h2>
-        <p class="muted">{{ order.createdAt | date: 'd MMMM y, HH:mm' }}</p>
+        <span class="number">Pedido {{ order.number }}</span>
+        <span class="date">{{ order.createdAt | date: "d 'de' MMMM 'de' y, HH:mm" }}</span>
       </div>
       <app-status-badge [status]="order.status" />
     </div>
@@ -66,14 +66,20 @@ const NEXT: Record<OrderStatus, OrderStatus[]> = {
     </mat-dialog-actions>
   `,
   styles: [
-    `.dialog-head { display: flex; justify-content: space-between; align-items: flex-start; padding-right: 24px; }
-     .dialog-head p { margin: -12px 0 0 24px; }
-     h3 { font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 12px 0 6px; }
-     .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    `.dialog-head::before { display: none !important; }
+     .dialog-head { padding-top: 22px !important; padding-bottom: 6px !important; display: flex !important; justify-content: space-between; align-items: center; gap: 16px; }
+     .dialog-head > div { display: flex; flex-direction: column; line-height: 1.3; }
+     .number { font-size: 20px; font-weight: 700; font-family: ui-monospace, monospace; }
+     .date { font-size: 13px; font-weight: 400; color: var(--muted); }
+     h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 16px 0 8px; }
+     .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 14px 16px; border-radius: 12px; background: var(--surface-2); }
+     .columns h3 { margin-top: 0; }
      .columns p { margin: 0; line-height: 1.5; }
      .line { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border); }
      .line-main { flex: 1; display: flex; flex-direction: column; }
-     .total { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--border); font-size: 16px; }
+     .total { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; margin-top: 4px; border-top: 1px solid var(--border); font-size: 16px; }
+     .total strong { font-size: 18px; }
+     .line strong { white-space: nowrap; }
      @media (max-width: 600px) { .columns { grid-template-columns: 1fr; } }`,
   ],
 })
@@ -138,16 +144,17 @@ export class OrderDetailDialog {
         <table mat-table [dataSource]="orders">
           <ng-container matColumnDef="number">
             <th mat-header-cell *matHeaderCellDef>Pedido</th>
-            <td mat-cell *matCellDef="let o"><strong class="mono">{{ o.number }}</strong>
+            <td mat-cell *matCellDef="let o"><strong class="mono nowrap">{{ o.number }}</strong>
+              <div class="show-sm">{{ o.customer.fullName }}</div>
               <div class="muted small">{{ o.createdAt | date: 'dd/MM/yyyy HH:mm' }}</div></td>
           </ng-container>
           <ng-container matColumnDef="customer">
-            <th mat-header-cell *matHeaderCellDef>Cliente</th>
-            <td mat-cell *matCellDef="let o">{{ o.customer.fullName }}<div class="muted small">{{ o.shipping.city }}</div></td>
+            <th mat-header-cell *matHeaderCellDef class="hide-sm">Cliente</th>
+            <td mat-cell *matCellDef="let o" class="hide-sm">{{ o.customer.fullName }}<div class="muted small">{{ o.shipping.city }}</div></td>
           </ng-container>
           <ng-container matColumnDef="items">
-            <th mat-header-cell *matHeaderCellDef>Productos</th>
-            <td mat-cell *matCellDef="let o">
+            <th mat-header-cell *matHeaderCellDef class="hide-md">Productos</th>
+            <td mat-cell *matCellDef="let o" class="hide-md">
               <div class="covers">
                 <img class="thumb" *ngFor="let l of o.items.slice(0, 3)" [src]="l.coverImage | imageUrl" [matTooltip]="l.volumeTitle" alt="" />
               </div>
@@ -160,11 +167,11 @@ export class OrderDetailDialog {
           </ng-container>
           <ng-container matColumnDef="total">
             <th mat-header-cell *matHeaderCellDef class="right">Total</th>
-            <td mat-cell *matCellDef="let o" class="right"><strong>{{ o.total | currency: 'EUR' }}</strong></td>
+            <td mat-cell *matCellDef="let o" class="right nowrap"><strong>{{ o.total | currency: 'EUR' }}</strong></td>
           </ng-container>
           <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let o" class="actions">
+            <th mat-header-cell *matHeaderCellDef class="hide-sm"></th>
+            <td mat-cell *matCellDef="let o" class="actions hide-sm">
               <button mat-icon-button (click)="open(o)" matTooltip="Ver y gestionar"><mat-icon>open_in_new</mat-icon></button>
             </td>
           </ng-container>
@@ -182,6 +189,7 @@ export class OrderDetailDialog {
   styles: [
     `.small { font-size: 13px; }
      .mono { font-family: ui-monospace, monospace; }
+     .nowrap { white-space: nowrap; }
      .right { text-align: right; }
      .covers { display: flex; gap: 4px; margin-bottom: 2px; }
      .covers .thumb { width: 28px; height: 40px; }
