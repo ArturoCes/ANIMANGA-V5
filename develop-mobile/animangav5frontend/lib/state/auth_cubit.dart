@@ -7,65 +7,54 @@ import '../core/api_client.dart';
 import '../data/models.dart';
 import '../data/repositories.dart';
 
-sealed class AuthState {
-  const AuthState();
-}
+class AuthState {
+  const AuthState({this.user, this.loading = false, this.message});
 
-class AuthLoading extends AuthState {
-  const AuthLoading();
-}
+  /// `null` = invitado (se puede navegar por el catálogo sin cuenta).
+  final User? user;
+  final bool loading;
 
-class Unauthenticated extends AuthState {
-  const Unauthenticated({this.message});
-
-  /// Mensaje opcional a mostrar en la pantalla de login (p. ej. sesión caducada).
+  /// Aviso para mostrar una vez (p. ej. sesión caducada).
   final String? message;
+
+  bool get isLoggedIn => user != null;
 }
 
-class Authenticated extends AuthState {
-  const Authenticated(this.user);
-  final User user;
-}
-
-/// Gestiona la sesión y la persiste entre arranques.
+/// Sesión del usuario. Guarda los tokens entre arranques y se entera de las renovaciones.
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit(this._api, this._repo) : super(const AuthLoading()) {
-    _api.onUnauthorized = () => logout(message: 'Tu sesión ha caducado. Vuelve a iniciar sesión.');
+  AuthCubit(this._api, this._repo) : super(const AuthState(loading: true)) {
+    _api.onSessionRefreshed = (session) => _saveSession(session);
+    _api.onSessionExpired = () => _clear(message: 'Tu sesión ha caducado. Vuelve a iniciar sesión.');
   }
 
-  static const _tokenKey = 'token';
+  static const _accessKey = 'access';
+  static const _refreshKey = 'refresh';
   static const _userKey = 'user';
 
   final ApiClient _api;
   final AuthRepository _repo;
 
-  User? get user => switch (state) {
-        Authenticated(:final user) => user,
-        _ => null,
-      };
+  User? get user => state.user;
 
-  /// Restaura la sesión guardada y comprueba que el token siga siendo válido.
   Future<void> restore() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(_tokenKey);
+    final access = prefs.getString(_accessKey);
+    final refresh = prefs.getString(_refreshKey);
     final rawUser = prefs.getString(_userKey);
-    if (token == null || rawUser == null) return emit(const Unauthenticated());
+    if (access == null || refresh == null || rawUser == null) return emit(const AuthState());
 
-    _api.token = token;
-    emit(Authenticated(User.fromJson(jsonDecode(rawUser) as Map<String, dynamic>)));
+    _api.session = Session(access, refresh);
+    emit(AuthState(user: User.fromJson(jsonDecode(rawUser) as Map<String, dynamic>)));
     try {
       await updateUser(await _repo.me());
     } on ApiException catch (e) {
-      if (e.isUnauthorized) await logout();
+      if (e.isUnauthorized) await _clear();
     }
   }
 
   Future<void> login(String username, String password) async {
-    final user = await _repo.login(username, password);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, _api.token!);
-    await prefs.setString(_userKey, jsonEncode(user.toJson()));
-    emit(Authenticated(user));
+    final (user, session) = await _repo.login(username, password);
+    await _start(user, session);
   }
 
   Future<void> register({
@@ -74,21 +63,45 @@ class AuthCubit extends Cubit<AuthState> {
     required String email,
     required String password,
   }) async {
-    await _repo.register(username: username, fullName: fullName, email: email, password: password);
-    await login(username, password);
+    final (user, session) =
+        await _repo.register(username: username, fullName: fullName, email: email, password: password);
+    await _start(user, session);
   }
 
   Future<void> updateUser(User user) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_userKey, jsonEncode(user.toJson()));
-    emit(Authenticated(user));
+    emit(AuthState(user: user));
   }
 
-  Future<void> logout({String? message}) async {
-    _api.token = null;
+  Future<void> logout() async {
+    final refresh = _api.session?.refreshToken;
+    if (refresh != null) _repo.logout(refresh).ignore();
+    await _clear();
+  }
+
+  void consumeMessage() {
+    if (state.message != null) emit(AuthState(user: state.user));
+  }
+
+  Future<void> _start(User user, Session session) async {
+    _api.session = session;
+    await _saveSession(session);
+    await updateUser(user);
+  }
+
+  Future<void> _saveSession(Session session) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userKey);
-    emit(Unauthenticated(message: message));
+    await prefs.setString(_accessKey, session.accessToken);
+    await prefs.setString(_refreshKey, session.refreshToken);
+  }
+
+  Future<void> _clear({String? message}) async {
+    _api.session = null;
+    final prefs = await SharedPreferences.getInstance();
+    for (final key in [_accessKey, _refreshKey, _userKey]) {
+      await prefs.remove(key);
+    }
+    emit(AuthState(message: message));
   }
 }

@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  api:
+    name: API (Spring Boot)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: develop-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Tests y empaquetado
+        run: ./mvnw -B verify
+
+  web:
+    name: Panel (Angular)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: develop-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+          cache-dependency-path: develop-web/package-lock.json
+      - run: npm ci
+      - name: Build de producción
+        run: npm run build
+
+  mobile:
+    name: App (Flutter)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: develop-mobile/animangav5frontend
+    env:
+      # URL de la API para la app Android (variable del repositorio API_URL)
+      API_URL: ${{ vars.API_URL || 'https://animanga-api.onrender.com' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Análisis estático
+        run: flutter analyze
+      - name: Tests
+        run: flutter test
+      - name: APK de Android
+        run: flutter build apk --release --dart-define=API_URL=$API_URL
+      - name: Web
+        run: flutter build web --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: animanga-apk
+          path: develop-mobile/animangav5frontend/build/app/outputs/flutter-apk/app-release.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: animanga-web
+          path: develop-mobile/animangav5frontend/build/web

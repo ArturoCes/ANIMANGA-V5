@@ -7,15 +7,15 @@ import 'core/api_client.dart';
 import 'core/theme.dart';
 import 'data/repositories.dart';
 import 'state/auth_cubit.dart';
-import 'ui/auth/login_page.dart';
+import 'state/cart_cubit.dart';
+import 'state/favorites_cubit.dart';
+import 'state/theme_cubit.dart';
 import 'ui/home_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es_ES');
-
-  final api = ApiClient();
-  runApp(AnimangaApp(api: api));
+  runApp(AnimangaApp(api: ApiClient()));
 }
 
 class AnimangaApp extends StatelessWidget {
@@ -33,27 +33,46 @@ class AnimangaApp extends StatelessWidget {
         RepositoryProvider(create: (_) => ShopRepository(api)),
         RepositoryProvider(create: (_) => ProfileRepository(api)),
       ],
-      child: BlocProvider(
-        create: (context) => AuthCubit(api, context.read<AuthRepository>())..restore(),
-        child: MaterialApp(
-          title: 'Animanga',
-          debugShowCheckedModeBanner: false,
-          theme: buildTheme(),
-          locale: const Locale('es', 'ES'),
-          supportedLocales: const [Locale('es', 'ES')],
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          home: BlocBuilder<AuthCubit, AuthState>(
-            buildWhen: (prev, next) => prev.runtimeType != next.runtimeType,
-            builder: (context, state) => switch (state) {
-              AuthLoading() => const Scaffold(body: Center(child: CircularProgressIndicator())),
-              Unauthenticated() => const LoginPage(),
-              // La clave fuerza a recrear la sesión si cambia de usuario
-              Authenticated(:final user) => HomeShell(key: ValueKey(user.id)),
-            },
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (c) => AuthCubit(api, c.read<AuthRepository>())..restore()),
+          BlocProvider(create: (_) => ThemeCubit()..restore()),
+          BlocProvider(create: (c) => CartCubit(c.read<ShopRepository>())),
+          BlocProvider(create: (c) => FavoritesCubit(c.read<CatalogRepository>())),
+        ],
+        // Al iniciar o cerrar sesión se recargan (o vacían) el carrito y los favoritos
+        child: BlocListener<AuthCubit, AuthState>(
+          listenWhen: (a, b) => a.user?.id != b.user?.id,
+          listener: (context, state) {
+            if (state.isLoggedIn) {
+              context.read<CartCubit>().load().ignore();
+              context.read<FavoritesCubit>().load();
+            } else {
+              context.read<CartCubit>().cleared();
+              context.read<FavoritesCubit>().clear();
+            }
+          },
+          child: BlocBuilder<ThemeCubit, ThemeMode>(
+            builder: (context, mode) => MaterialApp(
+              title: 'Animanga',
+              debugShowCheckedModeBanner: false,
+              theme: buildTheme(Brightness.light),
+              darkTheme: buildTheme(Brightness.dark),
+              themeMode: mode,
+              locale: const Locale('es', 'ES'),
+              supportedLocales: const [Locale('es', 'ES')],
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              home: BlocBuilder<AuthCubit, AuthState>(
+                buildWhen: (a, b) => a.loading != b.loading,
+                builder: (context, state) => state.loading
+                    ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+                    : const HomeShell(),
+              ),
+            ),
           ),
         ),
       ),

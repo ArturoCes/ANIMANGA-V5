@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/api_client.dart';
 import '../../data/repositories.dart';
 import '../../state/auth_cubit.dart';
+import '../../state/theme_cubit.dart';
 import '../widgets/common.dart';
 import 'edit_profile_page.dart';
 import 'orders_page.dart';
@@ -19,6 +20,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   bool _uploading = false;
+  bool _resending = false;
 
   Future<void> _changeAvatar() async {
     final auth = context.read<AuthCubit>();
@@ -28,12 +30,24 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _uploading = true);
     try {
       final file = UploadFile(bytes: await picked.readAsBytes(), filename: picked.name);
-      await auth.updateUser(await repo.updateAvatar(auth.user!.id, file));
+      await auth.updateUser(await repo.updateAvatar(file));
       if (mounted) showMessage(context, 'Foto de perfil actualizada');
     } catch (e) {
       if (mounted) showMessage(context, e.toString(), error: true);
     } finally {
       if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  Future<void> _resendVerification() async {
+    setState(() => _resending = true);
+    try {
+      await context.read<AuthRepository>().resendVerification();
+      if (mounted) showMessage(context, 'Te hemos enviado un nuevo email de confirmación');
+    } catch (e) {
+      if (mounted) showMessage(context, e.toString(), error: true);
+    } finally {
+      if (mounted) setState(() => _resending = false);
     }
   }
 
@@ -57,8 +71,45 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final user = context.select((AuthCubit c) => c.user);
-    if (user == null) return const SizedBox.shrink();
+    final user = context.select((AuthCubit c) => c.state.user);
+    final themeMode = context.watch<ThemeCubit>().state;
+
+    final themeCard = Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Apariencia', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          SegmentedButton<ThemeMode>(
+            segments: const [
+              ButtonSegment(value: ThemeMode.light, icon: Icon(Icons.light_mode_outlined), label: Text('Claro')),
+              ButtonSegment(
+                  value: ThemeMode.system, icon: Icon(Icons.brightness_auto_outlined), label: Text('Sistema')),
+              ButtonSegment(value: ThemeMode.dark, icon: Icon(Icons.dark_mode_outlined), label: Text('Oscuro')),
+            ],
+            selected: {themeMode},
+            onSelectionChanged: (s) => context.read<ThemeCubit>().set(s.first),
+          ),
+        ]),
+      ),
+    );
+
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Perfil')),
+        body: ContentWidth(
+          maxWidth: 640,
+          child: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 32), children: [
+            const SizedBox(
+              height: 340,
+              child: LoginRequired(
+                  icon: Icons.person_outline, message: 'Consulta tus pedidos, valora mangas y guarda tus datos.'),
+            ),
+            themeCard,
+          ]),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
@@ -70,60 +121,63 @@ class _ProfilePageState extends State<ProfilePage> {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Stack(
-                      children: [
-                        UserAvatar(url: user.image, name: user.fullName, radius: 38),
-                        Positioned(
-                          right: -4,
-                          bottom: -4,
-                          child: IconButton.filled(
-                            tooltip: 'Cambiar foto',
-                            iconSize: 16,
-                            visualDensity: VisualDensity.compact,
-                            onPressed: _uploading ? null : _changeAvatar,
-                            icon: _uploading
-                                ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                                : const Icon(Icons.photo_camera),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 18),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(user.fullName, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-                          Text('@${user.username}',
-                              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline)),
-                          Text(user.email,
-                              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline)),
-                        ],
+                child: Row(children: [
+                  Stack(clipBehavior: Clip.none, children: [
+                    UserAvatar(avatar: user.avatar, name: user.fullName, radius: 38),
+                    Positioned(
+                      right: -6,
+                      bottom: -6,
+                      child: IconButton.filled(
+                        tooltip: 'Cambiar foto',
+                        iconSize: 16,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: _uploading ? null : _changeAvatar,
+                        icon: _uploading
+                            ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Icon(Icons.photo_camera),
                       ),
                     ),
-                  ],
+                  ]),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(user.fullName, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+                      Text('@${user.username}', style: TextStyle(color: theme.colorScheme.outline)),
+                      Text(user.email, style: TextStyle(color: theme.colorScheme.outline)),
+                    ]),
+                  ),
+                ]),
+              ),
+            ),
+            if (!user.emailVerified) ...[
+              const SizedBox(height: 12),
+              Card(
+                color: theme.colorScheme.tertiaryContainer,
+                child: ListTile(
+                  leading: const Icon(Icons.mark_email_unread_outlined),
+                  title: const Text('Confirma tu email'),
+                  subtitle: const Text('Te enviamos un enlace al registrarte.'),
+                  trailing: TextButton(
+                    onPressed: _resending ? null : _resendVerification,
+                    child: Text(_resending ? 'Enviando…' : 'Reenviar'),
+                  ),
                 ),
               ),
-            ),
+            ],
             const SizedBox(height: 16),
             Card(
-              child: Column(
-                children: [
-                  _Tile(icon: Icons.receipt_long, label: 'Mis pedidos', onTap: () => _open(const OrdersPage())),
-                  const Divider(height: 1),
-                  _Tile(icon: Icons.edit_outlined, label: 'Editar datos', onTap: () => _open(const EditProfilePage())),
-                  const Divider(height: 1),
-                  _Tile(
-                      icon: Icons.lock_outline, label: 'Cambiar contraseña', onTap: () => _open(const PasswordPage())),
-                ],
-              ),
+              child: Column(children: [
+                _Tile(icon: Icons.receipt_long, label: 'Mis pedidos', onTap: () => _open(const OrdersPage())),
+                const Divider(height: 1),
+                _Tile(icon: Icons.edit_outlined, label: 'Editar datos', onTap: () => _open(const EditProfilePage())),
+                const Divider(height: 1),
+                _Tile(icon: Icons.lock_outline, label: 'Cambiar contraseña', onTap: () => _open(const PasswordPage())),
+              ]),
             ),
             const SizedBox(height: 16),
-            Card(
-              child: _Tile(icon: Icons.logout, label: 'Cerrar sesión', danger: true, onTap: _logout),
-            ),
+            themeCard,
+            const SizedBox(height: 16),
+            Card(child: _Tile(icon: Icons.logout, label: 'Cerrar sesión', danger: true, onTap: _logout)),
           ],
         ),
       ),

@@ -1,10 +1,10 @@
 import 'package:animanga/data/models.dart';
-import 'package:animanga/ui/cart/checkout_sheet.dart';
+import 'package:animanga/ui/cart/checkout_page.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('Validación de tarjeta (Luhn)', () {
-    test('acepta tarjetas de prueba válidas', () {
+  group('Validación de tarjeta', () {
+    test('acepta tarjetas de prueba válidas (Luhn)', () {
       expect(isValidCard('4242 4242 4242 4242'), isTrue);
       expect(isValidCard('5555555555554444'), isTrue);
     });
@@ -14,38 +14,77 @@ void main() {
       expect(isValidCard('1234'), isFalse);
       expect(isValidCard(''), isFalse);
     });
+
+    test('valida la caducidad', () {
+      final now = DateTime(2026, 10, 16);
+      expect(isValidExpiry('10/26', now), isTrue);
+      expect(isValidExpiry('12/30', now), isTrue);
+      expect(isValidExpiry('09/26', now), isFalse);
+      expect(isValidExpiry('13/28', now), isFalse);
+      expect(isValidExpiry('1228', now), isFalse);
+    });
   });
 
   group('Modelos', () {
-    test('Manga ordena los volúmenes de forma natural y calcula el precio mínimo', () {
-      final manga = Manga.fromJson({
+    test('MangaDetail lee volúmenes, personajes y valoración', () {
+      final manga = MangaDetail.fromJson({
         'id': 'm1',
-        'name': 'Jujutsu Kaisen',
+        'title': 'Spy×Family',
+        'author': 'Tatsuya Endō',
         'categories': [
-          {'id': 'c1', 'name': 'Shōnen'},
+          {'id': 'c1', 'name': 'Comedia'},
         ],
-        'volumenes': [
-          {'id': 'v10', 'nombre': 'Jujutsu Kaisen 10', 'precio': 8.95, 'cantidad': 0},
-          {'id': 'v2', 'nombre': 'Jujutsu Kaisen 2', 'precio': 8.5, 'cantidad': 3},
+        'minPrice': 9,
+        'ratingAverage': 4.5,
+        'ratingCount': 2,
+        'inStock': true,
+        'synopsis': 'Una familia muy especial.',
+        'volumes': [
+          {'id': 'v1', 'number': 1, 'title': 'Spy×Family 1', 'price': 9.0, 'stock': 0},
         ],
+        'characters': [
+          {'id': 'p1', 'name': 'Anya Forger', 'age': 6},
+        ],
+        'favorite': true,
+        'myRating': 5,
       });
 
-      expect(manga.volumenes.map((v) => v.nombre), ['Jujutsu Kaisen 2', 'Jujutsu Kaisen 10']);
-      expect(manga.minPrice, 8.5);
-      expect(manga.volumenes.last.soldOut, isTrue);
+      expect(manga.categories, ['Comedia']);
+      expect(manga.minPrice, 9.0);
+      expect(manga.volumes.single.soldOut, isTrue);
+      expect(manga.characters.single.name, 'Anya Forger');
+      expect(manga.favorite, isTrue);
+      expect(manga.myRating, 5);
     });
 
-    test('PageResult lee contenido y total', () {
-      final page = PageResult.fromJson({
-        'content': [
-          {'id': 'c1', 'name': 'Acción', 'description': ''},
+    test('Cart calcula unidades por volumen', () {
+      final cart = Cart.fromJson({
+        'items': [
+          {
+            'volume': {'id': 'v1', 'title': 'Naruto 1', 'price': 8.95, 'stock': 10},
+            'quantity': 2,
+            'subtotal': 17.9,
+          },
         ],
-        'totalElements': 1,
-        'last': true,
-      }, Category.fromJson);
+        'totalItems': 2,
+        'total': 17.9,
+      });
+      expect(cart.quantityOf('v1'), 2);
+      expect(cart.quantityOf('otro'), 0);
+      expect(cart.total, 17.9);
+    });
 
-      expect(page.totalElements, 1);
-      expect(page.content.single.name, 'Acción');
+    test('Los filtros solo envían los parámetros activos', () {
+      const filter = CatalogFilter(q: ' naruto ', category: 'Shōnen', inStock: true, sort: 'rating');
+      expect(filter.activeCount, 2);
+      expect(filter.toQuery(), containsPair('q', 'naruto'));
+      expect(filter.toQuery()['publisher'], isNull);
+      expect(filter.copyWith(category: () => null).activeCount, 1);
+    });
+
+    test('Order interpreta el estado', () {
+      expect(OrderStatus.parse('SHIPPED'), OrderStatus.shipped);
+      expect(OrderStatus.parse('DELIVERED').label, 'Entregado');
     });
   });
 }

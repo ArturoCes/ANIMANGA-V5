@@ -1,0 +1,9 @@
+# Finales de línea normalizados en el repositorio
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.jpg binary
+*.png binary
+*.webp binary
+*.jar binary
+*.docx binary

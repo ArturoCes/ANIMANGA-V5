@@ -4,64 +4,52 @@ import '../data/models.dart';
 import '../data/repositories.dart';
 
 class CartState {
-  const CartState({this.items = const [], this.loading = false, this.busyVolumen});
+  const CartState({this.cart = const Cart(), this.loading = false, this.busyVolume});
 
-  final List<CartItem> items;
+  final Cart cart;
   final bool loading;
 
-  /// Volumen sobre el que hay una operación en curso (para deshabilitar botones).
-  final String? busyVolumen;
+  /// Volumen con una operación en curso (para deshabilitar sus botones).
+  final String? busyVolume;
 
-  int get count => items.fold(0, (sum, i) => sum + i.quantity);
-  double get total => items.fold(0, (sum, i) => sum + i.subtotal);
-
-  int quantityOf(String volumenId) =>
-      items.where((i) => i.volumen.id == volumenId).fold(0, (sum, i) => sum + i.quantity);
-
-  CartState copyWith({List<CartItem>? items, bool? loading, String? busyVolumen, bool clearBusy = false}) => CartState(
-        items: items ?? this.items,
+  CartState copyWith({Cart? cart, bool? loading, String? busyVolume, bool clearBusy = false}) => CartState(
+        cart: cart ?? this.cart,
         loading: loading ?? this.loading,
-        busyVolumen: clearBusy ? null : busyVolumen ?? this.busyVolumen,
+        busyVolume: clearBusy ? null : busyVolume ?? this.busyVolume,
       );
 }
 
-/// Carrito del usuario autenticado. Los errores se relanzan para que la UI los muestre.
+/// Carrito del usuario. La API devuelve el carrito completo tras cada cambio.
+/// Los errores se relanzan para que la pantalla los muestre.
 class CartCubit extends Cubit<CartState> {
-  CartCubit(this._repo, this._user) : super(const CartState());
+  CartCubit(this._repo) : super(const CartState());
 
   final ShopRepository _repo;
-  final User _user;
 
   Future<void> load() async {
     emit(state.copyWith(loading: true));
     try {
-      emit(CartState(items: await _repo.cart(_user.idCart)));
+      emit(CartState(cart: await _repo.cart()));
     } catch (_) {
       emit(state.copyWith(loading: false));
       rethrow;
     }
   }
 
-  Future<void> add(Volumen volumen) => _mutate(volumen.id, () => _repo.addToCart(_user.id, volumen.id));
+  Future<void> add(Volume volume) => _mutate(volume.id, () => _repo.add(volume.id));
 
-  Future<void> removeOne(Volumen volumen) => _mutate(volumen.id, () => _repo.removeOne(_user.id, volumen.id));
+  Future<void> setQuantity(Volume volume, int quantity) =>
+      _mutate(volume.id, () => _repo.setQuantity(volume.id, quantity));
 
-  Future<void> removeAll(CartItem item) => _mutate(item.volumen.id, () async {
-        for (var i = 0; i < item.quantity; i++) {
-          await _repo.removeOne(_user.id, item.volumen.id);
-        }
-      });
+  Future<void> remove(Volume volume) => _mutate(volume.id, () => _repo.remove(volume.id));
 
-  Future<void> checkout(String cardNumber) async {
-    await _repo.checkout(_user.idCart, cardNumber);
-    emit(const CartState());
-  }
+  /// Tras pagar, el servidor vacía el carrito.
+  void cleared() => emit(const CartState());
 
-  Future<void> _mutate(String volumenId, Future<void> Function() action) async {
-    emit(state.copyWith(busyVolumen: volumenId));
+  Future<void> _mutate(String volumeId, Future<Cart> Function() action) async {
+    emit(state.copyWith(busyVolume: volumeId));
     try {
-      await action();
-      emit(CartState(items: await _repo.cart(_user.idCart)));
+      emit(CartState(cart: await action()));
     } catch (_) {
       emit(state.copyWith(clearBusy: true));
       rethrow;

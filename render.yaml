@@ -1,14 +1,34 @@
-# Blueprint de Render para la API (plan gratuito, perfil "demo" con H2 en memoria).
+# Blueprint de Render para la API (plan gratuito).
 # Render → New → Blueprint → selecciona este repositorio.
+#
+# Por defecto usa el perfil "demo": H2 en memoria, los datos de ejemplo se regeneran
+# en cada arranque y no hace falta base de datos. Para datos persistentes cambia
+# SPRING_PROFILES_ACTIVE a "prod" y añade DATABASE_URL, DATABASE_USERNAME y DATABASE_PASSWORD.
 services:
   - type: web
     name: animanga-api
     runtime: docker
     rootDir: develop-api
     plan: free
-    healthCheckPath: /v3/api-docs
+    healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: demo
       - key: JWT_SECRET
         generateValue: true
+      # URL pública de la tienda (Netlify): se usa en los enlaces de los emails
+      - key: FRONTEND_URL
+        sync: false
+      # SMTP opcional para enviar los emails de verificación y recuperación de contraseña
+      - key: SPRING_MAIL_HOST
+        sync: false
+      - key: SPRING_MAIL_PORT
+        value: "587"
+      - key: SPRING_MAIL_USERNAME
+        sync: false
+      - key: SPRING_MAIL_PASSWORD
+        sync: false
+      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
+        value: "true"
+      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH
+        value: "true"

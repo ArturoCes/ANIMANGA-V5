@@ -37,8 +37,8 @@ class AuthLayout extends StatelessWidget {
     );
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: showBack ? AppBar(backgroundColor: Colors.white) : null,
+      backgroundColor: theme.cardTheme.color,
+      appBar: showBack ? AppBar(backgroundColor: theme.cardTheme.color) : null,
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth < 900) return form;

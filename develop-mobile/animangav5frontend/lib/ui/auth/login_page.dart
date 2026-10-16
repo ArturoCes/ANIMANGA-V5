@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../state/auth_cubit.dart';
 import '../widgets/common.dart';
 import 'auth_layout.dart';
+import 'forgot_password_page.dart';
 import 'register_page.dart';
 
+/// Inicio de sesión. Se abre encima de la tienda y se cierra al entrar.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -21,15 +23,6 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscure = true;
 
   @override
-  void initState() {
-    super.initState();
-    final state = context.read<AuthCubit>().state;
-    if (state is Unauthenticated && state.message != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => showMessage(context, state.message!));
-    }
-  }
-
-  @override
   void dispose() {
     _username.dispose();
     _password.dispose();
@@ -41,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
     try {
       await context.read<AuthCubit>().login(_username.text.trim(), _password.text);
+      if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) showMessage(context, e.toString(), error: true);
     } finally {
@@ -57,8 +51,9 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return AuthLayout(
+      showBack: true,
       title: '¡Bienvenido de nuevo!',
-      subtitle: 'Inicia sesión para seguir con tu colección.',
+      subtitle: 'Inicia sesión para comprar, guardar favoritos y valorar mangas.',
       child: Form(
         key: _formKey,
         child: AutofillGroup(
@@ -89,7 +84,15 @@ class _LoginPageState extends State<LoginPage> {
                 onFieldSubmitted: (_) => _submit(),
                 validator: (v) => v == null || v.isEmpty ? 'Introduce tu contraseña' : null,
               ),
-              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () =>
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ForgotPasswordPage())),
+                  child: const Text('¿Has olvidado tu contraseña?'),
+                ),
+              ),
+              const SizedBox(height: 8),
               FilledButton(
                 onPressed: _loading ? null : _submit,
                 child: _loading

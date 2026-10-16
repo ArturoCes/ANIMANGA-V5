@@ -6,32 +6,33 @@ import '../data/repositories.dart';
 class FavoritesState {
   const FavoritesState({this.mangas = const [], this.loading = false, this.error});
 
-  final List<Manga> mangas;
+  final List<MangaSummary> mangas;
   final bool loading;
   final String? error;
 
   bool contains(String mangaId) => mangas.any((m) => m.id == mangaId);
 }
 
-/// Lista de favoritos compartida por el catálogo, el detalle y la pestaña de favoritos.
+/// Favoritos compartidos por portada, catálogo, ficha y pestaña de favoritos.
 class FavoritesCubit extends Cubit<FavoritesState> {
-  FavoritesCubit(this._repo, this._user) : super(const FavoritesState());
+  FavoritesCubit(this._repo) : super(const FavoritesState());
 
   final CatalogRepository _repo;
-  final User _user;
 
   Future<void> load() async {
     emit(FavoritesState(mangas: state.mangas, loading: true));
     try {
-      emit(FavoritesState(mangas: await _repo.favorites(_user.username)));
+      emit(FavoritesState(mangas: await _repo.favorites()));
     } catch (e) {
       emit(FavoritesState(mangas: state.mangas, error: e.toString()));
     }
   }
 
-  Future<void> toggle(Manga manga) async {
+  void clear() => emit(const FavoritesState());
+
+  Future<void> toggle(MangaSummary manga) async {
     final wasFavorite = state.contains(manga.id);
-    // Actualización optimista: la UI responde al instante
+    // Actualización optimista: la interfaz responde al momento
     emit(FavoritesState(
       mangas: wasFavorite ? state.mangas.where((m) => m.id != manga.id).toList() : [...state.mangas, manga],
     ));

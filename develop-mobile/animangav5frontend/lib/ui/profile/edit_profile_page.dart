@@ -30,12 +30,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final auth = context.read<AuthCubit>();
     setState(() => _saving = true);
     try {
-      final updated = await context
-          .read<ProfileRepository>()
-          .update(auth.user!, fullName: _fullName.text.trim(), email: _email.text.trim());
+      final updated =
+          await context.read<ProfileRepository>().update(fullName: _fullName.text.trim(), email: _email.text.trim());
       await auth.updateUser(updated);
       if (!mounted) return;
-      showMessage(context, 'Datos actualizados');
+      showMessage(
+          context, updated.emailVerified ? 'Datos actualizados' : 'Datos actualizados. Confirma tu nuevo email.');
       Navigator.pop(context);
     } catch (e) {
       if (mounted) showMessage(context, e.toString(), error: true);

@@ -21,10 +21,16 @@ class AppConfig {
 
   static String _trim(String url) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
 
-  /// URL de una imagen servida por la API (`/download/{fichero}`).
-  static String imageUrl(String? path) {
-    if (path == null || path.isEmpty) return '';
-    if (path.startsWith('http')) return path;
-    return '$apiUrl/download/${Uri.encodeComponent(path)}';
+  /// URL de una imagen servida por la API (`/images/{fichero}`), o la URL tal cual si es absoluta.
+  static String imageUrl(String? name) {
+    if (name == null || name.isEmpty) return '';
+    if (name.startsWith('http')) return name;
+    return '$apiUrl/images/${Uri.encodeComponent(name)}';
+  }
+
+  /// Avatar del usuario o uno generado con sus iniciales.
+  static String avatarUrl(String? avatar, String fullName) {
+    if (avatar != null && avatar.isNotEmpty) return imageUrl(avatar);
+    return 'https://ui-avatars.com/api/?background=673ab7&color=fff&name=${Uri.encodeComponent(fullName)}';
   }
 }

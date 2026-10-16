@@ -1,46 +1,54 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/config.dart';
+import '../../core/theme.dart';
+import '../../data/models.dart';
+import '../../state/auth_cubit.dart';
+import '../auth/login_page.dart';
 
-/// Portada de un manga o volumen con esquinas redondeadas y estado de carga/error.
+/// Portada o imagen de la API con caché en disco (móvil) o del navegador (web).
 class CoverImage extends StatelessWidget {
-  const CoverImage(this.path, {super.key, this.width, this.height, this.radius = 12});
+  const CoverImage(this.name, {super.key, this.width, this.height, this.radius = 12});
 
-  final String? path;
+  final String? name;
   final double? width;
   final double? height;
   final double radius;
 
   @override
   Widget build(BuildContext context) {
-    final url = AppConfig.imageUrl(path);
+    final url = AppConfig.imageUrl(name);
+    final scheme = Theme.of(context).colorScheme;
     final placeholder = Container(
       width: width,
       height: height,
-      color: const Color(0xFFEDE7F6),
+      color: scheme.primaryContainer.withValues(alpha: 0.35),
       alignment: Alignment.center,
-      child: Icon(Icons.menu_book_rounded, color: Theme.of(context).colorScheme.outline),
+      child: Icon(Icons.menu_book_rounded, color: scheme.primary.withValues(alpha: 0.5)),
     );
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: url.isEmpty
           ? placeholder
-          : Image.network(
-              url,
+          : CachedNetworkImage(
+              imageUrl: url,
               width: width,
               height: height,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => placeholder,
-              loadingBuilder: (_, child, progress) => progress == null ? child : placeholder,
+              fadeInDuration: const Duration(milliseconds: 200),
+              placeholder: (_, __) => placeholder,
+              errorWidget: (_, __, ___) => placeholder,
             ),
     );
   }
 }
 
 class UserAvatar extends StatelessWidget {
-  const UserAvatar({super.key, required this.url, required this.name, this.radius = 24});
+  const UserAvatar({super.key, required this.avatar, required this.name, this.radius = 24});
 
-  final String url;
+  final String? avatar;
   final String name;
   final double radius;
 
@@ -50,12 +58,34 @@ class UserAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: radius,
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      foregroundImage: url.isEmpty ? null : NetworkImage(AppConfig.imageUrl(url)),
+      foregroundImage: CachedNetworkImageProvider(AppConfig.avatarUrl(avatar, name)),
       // Si la imagen no carga se quedan las iniciales
-      onForegroundImageError: url.isEmpty ? null : (_, __) {},
+      onForegroundImageError: (_, __) {},
       child: Text(initials, style: TextStyle(fontSize: radius * 0.7, fontWeight: FontWeight.w600)),
     );
   }
+}
+
+/// Estrellas de solo lectura.
+class RatingStars extends StatelessWidget {
+  const RatingStars(this.rating, {super.key, this.size = 16});
+  final double rating;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 1; i <= 5; i++)
+            Icon(
+              rating >= i
+                  ? Icons.star_rounded
+                  : (rating >= i - 0.5 ? Icons.star_half_rounded : Icons.star_outline_rounded),
+              size: size,
+              color: AppColors.star,
+            ),
+        ],
+      );
 }
 
 /// Mensaje centrado para listas vacías o errores, con acción opcional.
@@ -102,6 +132,35 @@ class EmptyState extends StatelessWidget {
   }
 }
 
+/// Pantalla de "inicia sesión para continuar" para las pestañas que requieren cuenta.
+class LoginRequired extends StatelessWidget {
+  const LoginRequired({super.key, required this.icon, required this.message});
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => EmptyState(
+        icon: icon,
+        title: 'Inicia sesión para continuar',
+        message: message,
+        action: 'Iniciar sesión',
+        onAction: () => openLogin(context),
+      );
+}
+
+/// Abre el login. Devuelve `true` si al volver hay sesión iniciada.
+Future<bool> openLogin(BuildContext context) async {
+  await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoginPage()));
+  return context.mounted && context.read<AuthCubit>().state.isLoggedIn;
+}
+
+/// Ejecuta [action] si hay sesión; si no, pide iniciarla primero.
+Future<void> requireLogin(BuildContext context, Future<void> Function() action) async {
+  if (context.read<AuthCubit>().state.isLoggedIn || await openLogin(context)) {
+    await action();
+  }
+}
+
 /// Etiqueta de stock: verde, naranja (pocas unidades) o rojo (agotado).
 class StockBadge extends StatelessWidget {
   const StockBadge(this.stock, {super.key});
@@ -110,26 +169,48 @@ class StockBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (stock) {
-      <= 0 => ('Agotado', const Color(0xFFC62828)),
-      <= 5 => ('Últimas $stock uds.', const Color(0xFFB26A00)),
-      _ => ('En stock', const Color(0xFF2E7D32)),
+      <= 0 => ('Agotado', const Color(0xFFE53935)),
+      <= 5 => ('Últimas $stock uds.', const Color(0xFFF57C00)),
+      _ => ('En stock', const Color(0xFF43A047)),
     };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(99)),
-      child: Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
-    );
+    return _Pill(label: label, color: color);
   }
+}
+
+class OrderStatusBadge extends StatelessWidget {
+  const OrderStatusBadge(this.status, {super.key});
+  final OrderStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (status) {
+      OrderStatus.paid => Theme.of(context).colorScheme.primary,
+      OrderStatus.shipped => const Color(0xFF1E88E5),
+      OrderStatus.delivered => const Color(0xFF43A047),
+      OrderStatus.cancelled => const Color(0xFFE53935),
+    };
+    return _Pill(label: status.label, color: color);
+  }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({required this.label, required this.color});
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.13), borderRadius: BorderRadius.circular(99)),
+        child: Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+      );
 }
 
 void showMessage(BuildContext context, String message, {bool error = false}) {
   final scheme = Theme.of(context).colorScheme;
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(
-      content: Text(message),
-      backgroundColor: error ? scheme.error : null,
-    ));
+    ..showSnackBar(SnackBar(content: Text(message), backgroundColor: error ? scheme.error : null));
 }
 
 /// Limita el ancho del contenido en pantallas grandes (web/tablet).
