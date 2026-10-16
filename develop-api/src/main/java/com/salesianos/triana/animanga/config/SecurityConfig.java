@@ -55,6 +55,7 @@ public class SecurityConfig {
                                 "/actuator/health", "/h2-console/**", "/error").permitAll()
                         // Administración
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/mangas/search-by-image").permitAll()
                         .requestMatchers(HttpMethod.POST, "/mangas/*/reviews").authenticated()
                         .requestMatchers(HttpMethod.POST, "/mangas/**", "/volumes/**", "/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/mangas/**", "/volumes/**", "/characters/**", "/categories/**").hasRole("ADMIN")

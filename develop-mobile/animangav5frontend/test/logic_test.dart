@@ -26,6 +26,18 @@ void main() {
   });
 
   group('Modelos', () {
+    test('el resultado de buscar por imagen indica si hay coincidencia', () {
+      final r = ImageSearchResult.fromJson({
+        'found': true,
+        'matches': [
+          {'manga': {'id': 'm1', 'title': 'Naruto'}, 'volumeNumber': 1, 'cover': 'nar-01.jpg', 'similarity': 97},
+        ],
+      });
+      expect(r.found, isTrue);
+      expect(r.matches.single.manga.title, 'Naruto');
+      expect(r.matches.single.volumeNumber, 1);
+    });
+
     test('el volumen lee las páginas del avance', () {
       final v = Volume.fromJson({'id': 'v1', 'previewPages': ['a-p01.jpg', 'a-p02.jpg']});
       expect(v.hasPreview, isTrue);

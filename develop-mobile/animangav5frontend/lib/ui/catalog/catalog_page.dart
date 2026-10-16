@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/theme.dart';
 import '../../data/models.dart';
 import '../../data/repositories.dart';
+import 'image_search_page.dart';
 import '../widgets/common.dart';
 import 'manga_card.dart';
 
@@ -144,7 +145,7 @@ class _CatalogPageState extends State<CatalogPage> {
                 hintText: 'Buscar por título o autor',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _search.text.isEmpty
-                    ? null
+                    ? const ImageSearchButton()
                     : IconButton(
                         tooltip: 'Limpiar',
                         icon: const Icon(Icons.close),

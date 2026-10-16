@@ -41,9 +41,13 @@ public abstract class IntegrationTest {
     @Autowired
     private LoginAttemptService loginAttempts;
 
+    @Autowired
+    private com.salesianos.triana.animanga.imagesearch.ImageSearchRateLimiter imageSearchLimiter;
+
     @BeforeEach
     void resetState() {
         loginAttempts.reset();
+        imageSearchLimiter.reset();
         mail.clearOutbox();
     }
 

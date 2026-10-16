@@ -6,6 +6,7 @@ import '../../data/repositories.dart';
 import '../../state/auth_cubit.dart';
 import '../catalog/catalog_page.dart';
 import '../catalog/manga_card.dart';
+import '../catalog/image_search_page.dart';
 import '../widgets/common.dart';
 
 /// Portada de la tienda: buscador, categorías y secciones destacadas.
@@ -88,6 +89,7 @@ class _HomePageState extends State<HomePage> {
                             decoration: const InputDecoration(
                               hintText: 'Buscar por título o autor',
                               prefixIcon: Icon(Icons.search),
+                              suffixIcon: ImageSearchButton(),
                             ),
                           ),
                           const SizedBox(height: 12),

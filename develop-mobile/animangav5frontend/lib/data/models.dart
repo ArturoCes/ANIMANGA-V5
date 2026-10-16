@@ -465,3 +465,37 @@ class CatalogFilter {
         'sort': sort,
       };
 }
+
+/// Manga encontrado al buscar por imagen. [similarity] va de 0 a 100.
+class ImageMatch {
+  ImageMatch({required this.manga, required this.similarity, this.volumeNumber, this.cover});
+
+  factory ImageMatch.fromJson(Map<String, dynamic> json) => ImageMatch(
+        manga: MangaSummary.fromJson(json['manga'] as Map<String, dynamic>),
+        similarity: json['similarity'] as int? ?? 0,
+        volumeNumber: json['volumeNumber'] as int?,
+        cover: json['cover'] as String?,
+      );
+
+  final MangaSummary manga;
+  final int similarity;
+  final int? volumeNumber;
+
+  /// Portada concreta que ha coincidido (la de la serie o la de un tomo).
+  final String? cover;
+}
+
+class ImageSearchResult {
+  ImageSearchResult({required this.found, required this.matches});
+
+  factory ImageSearchResult.fromJson(Map<String, dynamic> json) => ImageSearchResult(
+        found: json['found'] as bool? ?? false,
+        matches: (json['matches'] as List? ?? [])
+            .map((e) => ImageMatch.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+
+  /// Hay una coincidencia clara: el primero de [matches] es el manga de la foto.
+  final bool found;
+  final List<ImageMatch> matches;
+}

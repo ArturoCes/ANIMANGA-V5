@@ -25,6 +25,7 @@ Son tres aplicaciones que comparten una API REST:
 - **Portada** con *recomendado para ti* (según tus favoritos y compras), novedades, más vendidos y mejor valorados.
 - **Catálogo** con búsqueda por título o autor y filtros por categoría, editorial, precio máximo y disponibilidad. Seis ordenaciones y **scroll infinito**.
 - **Ficha** con volúmenes, stock en tiempo real, personajes y **reseñas** con estrellas y sello de *compra verificada*.
+- **Buscar por portada**: haz una foto a un tomo (o usa una captura) desde el buscador y la app te dice qué manga es y qué tomo. La API compara la imagen con todas las portadas usando un hash perceptual y un histograma de color; tolera fondos, márgenes, giros y fotos algo torcidas. Es pública pero limitada a 10 búsquedas por minuto.
 - **Leer avance**: lector de las primeras páginas de un tomo con miniaturas, zoom (pellizcar o doble toque), flechas y teclado, y una página final para añadirlo al carrito. Las páginas de ejemplo están generadas por código, no son páginas reales.
 - **Carrito** y **pago**: dirección de envío, tarjeta validada con el algoritmo de Luhn (pasarela simulada) y confirmación con número de pedido.
 - **Mis pedidos** con el seguimiento del estado. Se puede cancelar mientras no se haya enviado.
@@ -71,7 +72,7 @@ Son tres aplicaciones que comparten una API REST:
 - Los secretos llegan por variables de entorno. En producción los frontends hablan con la API a través de un proxy del hosting, así que no hace falta abrir CORS.
 
 ## Calidad
-- **44 tests** en la API (integración con MockMvc y unitarios): autenticación, permisos por rol, catálogo, carrito, pedidos, concurrencia, reseñas y estadísticas.
+- **51 tests** en la API (integración con MockMvc y unitarios): autenticación, permisos por rol, catálogo, carrito, pedidos, concurrencia, reseñas y estadísticas.
 - **7 tests** en Flutter (validación de tarjeta, modelos y filtros), además de `flutter analyze` sin avisos.
 - **CI en GitHub Actions** en cada push: tests de la API, build del panel, análisis y tests de Flutter, y generación del **APK de Android** y de la versión web, que se pueden descargar como *artifacts*.
 

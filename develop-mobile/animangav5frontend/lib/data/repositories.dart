@@ -51,6 +51,10 @@ class CatalogRepository {
         MangaSummary.fromJson,
       );
 
+  /// Busca el manga de una foto o captura de su portada.
+  Future<ImageSearchResult> searchByImage(UploadFile image) async => ImageSearchResult.fromJson(
+      await _api.multipart('POST', '/mangas/search-by-image', files: {'image': image}) as Map<String, dynamic>);
+
   Future<HomeSections> home() async => HomeSections.fromJson(await _api.get('/mangas/home') as Map<String, dynamic>);
 
   Future<List<Category>> categories() async =>
