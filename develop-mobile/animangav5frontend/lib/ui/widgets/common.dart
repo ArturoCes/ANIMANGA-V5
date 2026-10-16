@@ -17,7 +17,7 @@ class CoverImage extends StatelessWidget {
     final placeholder = Container(
       width: width,
       height: height,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      color: const Color(0xFFEDE7F6),
       alignment: Alignment.center,
       child: Icon(Icons.menu_book_rounded, color: Theme.of(context).colorScheme.outline),
     );

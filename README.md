@@ -16,9 +16,9 @@ El proyecto se compone de tres aplicaciones que comparten una API REST:
 |---|---|
 | ![Catálogo](docs/screenshots/store-catalog.jpg) | ![Ficha](docs/screenshots/store-manga.jpg) |
 
-| Login del panel | Volúmenes de un manga |
+| Catálogo en el panel | Volúmenes de un manga |
 |---|---|
-| ![Login](docs/screenshots/admin-login.jpg) | ![Detalle](docs/screenshots/admin-manga.jpg) |
+| ![Mangas](docs/screenshots/admin-mangas.jpg) | ![Detalle](docs/screenshots/admin-manga.jpg) |
 
 ## Funcionalidades
 
@@ -44,6 +44,12 @@ El proyecto se compone de tres aplicaciones que comparten una API REST:
 - Autenticación con JWT y refresh token.
 - Autorización por rol (`ADMIN` / `USER`) a nivel de rutas y de servicio.
 - Documentación OpenAPI en `/swagger-ui.html`.
+
+## Datos de demostración
+
+La API arranca con un catálogo de ejemplo: **8 series** (Jujutsu Kaisen, Jujutsu Kaisen 0, One Piece, Naruto, Ataque a los Titanes, Guardianes de la Noche, Chainsaw Man y Spy×Family), 33 volúmenes con precio y stock (hay alguno agotado y otros con pocas unidades), 14 personajes, 8 categorías, 3 usuarios y un par de compras. Los datos están en `develop-api/src/main/resources/import.sql` y las portadas en `resources/seed/covers`.
+
+> Las portadas y personajes pertenecen a sus autores y editoriales. Se usan solo con fines demostrativos en un proyecto académico sin ánimo de lucro. Los ISBN son ficticios.
 
 ## Seguridad
 
