@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatChipsModule } from '@angular/material/chips';
@@ -20,6 +21,7 @@ import { ImageUrlPipe } from './image-url.pipe';
 export const UI = [
   CommonModule,
   ReactiveFormsModule,
+  MatAutocompleteModule,
   MatButtonModule,
   MatButtonToggleModule,
   MatChipsModule,

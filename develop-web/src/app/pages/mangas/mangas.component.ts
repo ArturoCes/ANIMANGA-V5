@@ -3,11 +3,11 @@ import { FormControl } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { debounceTime, distinctUntilChanged, merge } from 'rxjs';
 import { UI } from '../../shared/material';
 import { CatalogService } from '../../core/catalog.service';
 import { NotifyService } from '../../core/notify.service';
-import { Manga } from '../../core/models';
+import { Category, MangaSummary } from '../../core/models';
 import { MangaFormDialog } from './manga-form.dialog';
 
 @Component({
@@ -28,7 +28,24 @@ import { MangaFormDialog } from './manga-form.dialog';
       <div class="toolbar">
         <mat-form-field appearance="outline" class="search" subscriptSizing="dynamic">
           <mat-icon matPrefix>search</mat-icon>
-          <input matInput [formControl]="search" placeholder="Buscar por título" />
+          <input matInput [formControl]="search" placeholder="Buscar por título o autor" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter">
+          <mat-label>Categoría</mat-label>
+          <mat-select [formControl]="category">
+            <mat-option [value]="''">Todas</mat-option>
+            <mat-option *ngFor="let c of categories" [value]="c.name">{{ c.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter">
+          <mat-label>Ordenar por</mat-label>
+          <mat-select [formControl]="sort">
+            <mat-option value="title">Título</mat-option>
+            <mat-option value="newest">Más recientes</mat-option>
+            <mat-option value="bestselling">Más vendidos</mat-option>
+            <mat-option value="rating">Mejor valorados</mat-option>
+            <mat-option value="price_asc">Precio: menor a mayor</mat-option>
+          </mat-select>
         </mat-form-field>
       </div>
       <mat-progress-bar *ngIf="loading" mode="indeterminate" />
@@ -37,34 +54,49 @@ import { MangaFormDialog } from './manga-form.dialog';
         <table mat-table [dataSource]="mangas">
           <ng-container matColumnDef="cover">
             <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let m"><img class="thumb" [src]="m.posterPath | imageUrl" alt="" /></td>
+            <td mat-cell *matCellDef="let m"><img class="thumb" [src]="m.coverImage | imageUrl" alt="" /></td>
           </ng-container>
-          <ng-container matColumnDef="name">
+          <ng-container matColumnDef="title">
             <th mat-header-cell *matHeaderCellDef>Título</th>
             <td mat-cell *matCellDef="let m">
-              <a class="title-link" [routerLink]="['/mangas', m.id]">{{ m.name }}</a>
+              <a class="title-link" [routerLink]="['/mangas', m.id]">{{ m.title }}</a>
               <div class="muted small">{{ m.author }}<span *ngIf="m.publisher"> · {{ m.publisher }}</span></div>
             </td>
           </ng-container>
           <ng-container matColumnDef="categories">
             <th mat-header-cell *matHeaderCellDef>Categorías</th>
+            <td mat-cell *matCellDef="let m"><span class="tag" *ngFor="let c of m.categories">{{ c.name }}</span></td>
+          </ng-container>
+          <ng-container matColumnDef="rating">
+            <th mat-header-cell *matHeaderCellDef>Valoración</th>
             <td mat-cell *matCellDef="let m">
-              <span class="tag" *ngFor="let c of m.categories">{{ c.name }}</span>
+              <span *ngIf="m.ratingCount; else noRating" class="rating">
+                <mat-icon>star</mat-icon>{{ m.ratingAverage | number: '1.1-1' }}
+                <span class="muted small">({{ m.ratingCount }})</span>
+              </span>
+              <ng-template #noRating><span class="muted">—</span></ng-template>
             </td>
           </ng-container>
           <ng-container matColumnDef="volumes">
             <th mat-header-cell *matHeaderCellDef>Volúmenes</th>
-            <td mat-cell *matCellDef="let m">{{ m.volumenes.length }}</td>
+            <td mat-cell *matCellDef="let m">
+              {{ m.volumeCount }}
+              <span class="badge badge-danger" *ngIf="m.volumeCount && !m.inStock">Sin stock</span>
+            </td>
           </ng-container>
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef>Publicación</th>
-            <td mat-cell *matCellDef="let m">{{ m.releaseDate ? (m.releaseDate | date: 'yyyy') : '—' }}</td>
+          <ng-container matColumnDef="sold">
+            <th mat-header-cell *matHeaderCellDef>Vendidos</th>
+            <td mat-cell *matCellDef="let m">{{ m.unitsSold }}</td>
+          </ng-container>
+          <ng-container matColumnDef="price">
+            <th mat-header-cell *matHeaderCellDef>Desde</th>
+            <td mat-cell *matCellDef="let m">{{ m.minPrice != null ? (m.minPrice | currency: 'EUR') : '—' }}</td>
           </ng-container>
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let m" class="actions">
-              <a mat-icon-button [routerLink]="['/mangas', m.id]" matTooltip="Ver volúmenes"><mat-icon>visibility</mat-icon></a>
-              <button mat-icon-button (click)="openForm(m)" matTooltip="Editar"><mat-icon>edit</mat-icon></button>
+              <a mat-icon-button [routerLink]="['/mangas', m.id]" matTooltip="Volúmenes, personajes y reseñas"><mat-icon>visibility</mat-icon></a>
+              <button mat-icon-button (click)="edit(m)" matTooltip="Editar"><mat-icon>edit</mat-icon></button>
               <button mat-icon-button (click)="remove(m)" matTooltip="Eliminar"><mat-icon>delete</mat-icon></button>
             </td>
           </ng-container>
@@ -82,11 +114,14 @@ import { MangaFormDialog } from './manga-form.dialog';
     </div>
   `,
   styles: [
-    `.mat-column-name { min-width: 220px; }
-     .mat-column-categories { min-width: 160px; }
-     .title-link { font-weight: 600; color: var(--text); text-decoration: none; }
+    `.title-link { font-weight: 600; color: var(--text); text-decoration: none; }
      .title-link:hover { color: var(--brand); }
-     .small { font-size: 13px; }`,
+     .small { font-size: 13px; }
+     .filter { width: 190px; }
+     .mat-column-title { min-width: 220px; }
+     .mat-column-categories { min-width: 170px; }
+     .rating { display: inline-flex; align-items: center; gap: 2px; font-weight: 600; }
+     .rating mat-icon { color: #f5a623; font-size: 18px; width: 18px; height: 18px; }`,
   ],
 })
 export class MangasComponent implements OnInit {
@@ -94,40 +129,45 @@ export class MangasComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotifyService);
 
-  readonly columns = ['cover', 'name', 'categories', 'volumes', 'date', 'actions'];
+  readonly columns = ['cover', 'title', 'categories', 'rating', 'volumes', 'sold', 'price', 'actions'];
   readonly search = new FormControl('', { nonNullable: true });
+  readonly category = new FormControl('', { nonNullable: true });
+  readonly sort = new FormControl('title', { nonNullable: true });
 
-  mangas: Manga[] = [];
+  categories: Category[] = [];
+  mangas: MangaSummary[] = [];
   total = 0;
   page = 0;
   size = 10;
   loading = false;
 
   ngOnInit(): void {
+    this.catalog.categories().subscribe((c) => (this.categories = c));
     this.load();
-    this.search.valueChanges.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
-      this.page = 0;
-      this.load();
-    });
+    merge(this.search.valueChanges.pipe(debounceTime(300), distinctUntilChanged()),
+      this.category.valueChanges, this.sort.valueChanges)
+      .subscribe(() => {
+        this.page = 0;
+        this.load();
+      });
   }
 
   load(): void {
     this.loading = true;
-    const term = this.search.value.trim();
-    const request = term
-      ? this.catalog.searchMangas(term, this.page, this.size)
-      : this.catalog.mangas(this.page, this.size);
-    request.subscribe({
-      next: (res) => {
-        this.mangas = res.content;
-        this.total = res.totalElements;
-        this.loading = false;
-      },
-      error: (err) => {
-        this.loading = false;
-        this.notify.error(err);
-      },
-    });
+    this.catalog
+      .mangas({ q: this.search.value.trim(), category: this.category.value, sort: this.sort.value,
+                page: this.page, size: this.size })
+      .subscribe({
+        next: (res) => {
+          this.mangas = res.content;
+          this.total = res.totalElements;
+          this.loading = false;
+        },
+        error: (err) => {
+          this.loading = false;
+          this.notify.error(err);
+        },
+      });
   }
 
   onPage(e: PageEvent): void {
@@ -136,18 +176,30 @@ export class MangasComponent implements OnInit {
     this.load();
   }
 
-  openForm(manga?: Manga): void {
+  openForm(): void {
     this.dialog
-      .open(MangaFormDialog, { data: manga ?? null, width: '640px', maxWidth: '95vw' })
+      .open(MangaFormDialog, { data: null, width: '640px', maxWidth: '95vw' })
       .afterClosed()
       .subscribe((saved) => saved && this.load());
   }
 
-  remove(manga: Manga): void {
+  edit(summary: MangaSummary): void {
+    // El formulario necesita la sinopsis, que solo viene en la ficha completa
+    this.catalog.manga(summary.id).subscribe({
+      next: (manga) =>
+        this.dialog
+          .open(MangaFormDialog, { data: manga, width: '640px', maxWidth: '95vw' })
+          .afterClosed()
+          .subscribe((saved) => saved && this.load()),
+      error: (err) => this.notify.error(err),
+    });
+  }
+
+  remove(manga: MangaSummary): void {
     this.notify
       .confirm({
         title: 'Eliminar manga',
-        message: `Se eliminará "${manga.name}" junto con sus ${manga.volumenes.length} volúmenes. Esta acción no se puede deshacer.`,
+        message: `Se eliminará "${manga.title}" con sus ${manga.volumeCount} volúmenes, personajes y reseñas. Los pedidos ya hechos se conservan.`,
         confirmText: 'Eliminar',
         danger: true,
       })

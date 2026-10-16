@@ -12,6 +12,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { AuthService } from '../core/auth.service';
 import { NotifyService } from '../core/notify.service';
+import { ThemeService } from '../core/theme.service';
+import { avatarUrl } from '../core/api';
 
 interface NavItem {
   label: string;
@@ -50,8 +52,12 @@ interface NavItem {
             <mat-icon>menu</mat-icon>
           </button>
           <span class="spacer"></span>
+          <button mat-icon-button (click)="theme.toggle()"
+                  [matTooltip]="theme.theme() === 'dark' ? 'Modo claro' : 'Modo oscuro'" aria-label="Cambiar tema">
+            <mat-icon>{{ theme.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+          </button>
           <button class="user-chip" [matMenuTriggerFor]="menu" *ngIf="auth.user() as user">
-            <img [src]="user.image" alt="" />
+            <img [src]="avatar(user.avatar, user.fullName)" alt="" />
             <span class="user-name">{{ user.fullName }}</span>
             <mat-icon>expand_more</mat-icon>
           </button>
@@ -72,6 +78,8 @@ export class ShellComponent {
   @ViewChild('nav') sidenav!: MatSidenav;
 
   readonly auth = inject(AuthService);
+  readonly theme = inject(ThemeService);
+  readonly avatar = avatarUrl;
   private readonly notify = inject(NotifyService);
 
   readonly isMobile = toSignal(
@@ -84,7 +92,7 @@ export class ShellComponent {
     { label: 'Mangas', icon: 'auto_stories', link: '/mangas' },
     { label: 'Categorías', icon: 'sell', link: '/categorias' },
     { label: 'Usuarios', icon: 'group', link: '/usuarios' },
-    { label: 'Compras', icon: 'receipt_long', link: '/compras' },
+    { label: 'Pedidos', icon: 'local_shipping', link: '/pedidos' },
   ];
 
   constructor() {

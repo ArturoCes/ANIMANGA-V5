@@ -30,6 +30,39 @@
   --mdc-dialog-container-shape: 18px;
 }
 
+/* ---------- Modo oscuro */
+html.dark {
+  --brand: #b388ff;
+  --brand-dark: #e2d4ff;
+  --brand-soft: rgba(179, 136, 255, 0.16);
+  --sidebar: #120b1f;
+  --bg: #15121c;
+  --surface: #1f1a29;
+  --surface-2: #2a2436;
+  --border: #352e43;
+  --text: #ece8f4;
+  --muted: #a49cb5;
+  --danger: #ff6b6b;
+  --warn: #ffb74d;
+  --ok: #81c784;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+html.dark .mat-mdc-row:hover {
+  background: #262033;
+}
+
+html.dark .badge-ok { background: rgba(129, 199, 132, 0.15); }
+html.dark .badge-warn { background: rgba(255, 183, 77, 0.15); }
+html.dark .badge-danger { background: rgba(255, 107, 107, 0.15); }
+
+html.dark .mat-mdc-table,
+html.dark .mat-mdc-paginator {
+  background: var(--surface) !important;
+}
+
 * {
   box-sizing: border-box;
 }

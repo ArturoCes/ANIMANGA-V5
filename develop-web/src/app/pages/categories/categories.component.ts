@@ -42,7 +42,7 @@ export class CategoryFormDialog {
   });
 
   constructor(@Inject(MAT_DIALOG_DATA) public category: Category | null) {
-    if (category) this.form.patchValue(category);
+    if (category) this.form.patchValue({ name: category.name, description: category.description ?? "" });
   }
 
   save(): void {
@@ -126,7 +126,7 @@ export class CategoriesComponent implements OnInit {
     this.loading = true;
     this.catalog.categories().subscribe({
       next: (res) => {
-        this.categories = res.content;
+        this.categories = res;
         this.loading = false;
       },
       error: (err) => {

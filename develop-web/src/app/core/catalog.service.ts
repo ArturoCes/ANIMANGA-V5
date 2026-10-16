@@ -5,15 +5,36 @@ import { API, jsonPart } from './api';
 import {
   Category,
   CategoryPayload,
-  Manga,
+  CharacterPayload,
+  MangaCharacter,
+  MangaDetail,
   MangaPayload,
+  MangaSummary,
   Page,
-  Volumen,
-  VolumenPayload,
+  Review,
+  Volume,
+  VolumePayload,
 } from './models';
 
-function pageParams(page: number, size: number): HttpParams {
-  return new HttpParams().set('page', page).set('size', size);
+export interface MangaQuery {
+  q?: string;
+  category?: string;
+  sort?: string;
+  page?: number;
+  size?: number;
+}
+
+function params(values: Record<string, string | number | undefined | null>): HttpParams {
+  let p = new HttpParams();
+  Object.entries(values).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') p = p.set(k, v);
+  });
+  return p;
+}
+
+function filePart(name: string, file: File, form = new FormData()): FormData {
+  form.append(name, file);
+  return form;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -21,79 +42,93 @@ export class CatalogService {
   constructor(private http: HttpClient) {}
 
   // ---------- Mangas
-  mangas(page = 0, size = 10): Observable<Page<Manga>> {
-    return this.http.get<Page<Manga>>(`${API}manga/all`, { params: pageParams(page, size) });
+  mangas(query: MangaQuery = {}): Observable<Page<MangaSummary>> {
+    return this.http.get<Page<MangaSummary>>(`${API}mangas`, { params: params({ size: 10, ...query }) });
   }
 
-  searchMangas(name: string, page = 0, size = 10): Observable<Page<Manga>> {
-    return this.http.post<Page<Manga>>(`${API}manga/search/all`, jsonPart('search', { name }), {
-      params: pageParams(page, size),
-    });
+  manga(id: string): Observable<MangaDetail> {
+    return this.http.get<MangaDetail>(`${API}mangas/${id}`);
   }
 
-  manga(id: string): Observable<Manga> {
-    return this.http.get<Manga>(`${API}manga/${id}`);
+  publishers(): Observable<string[]> {
+    return this.http.get<string[]>(`${API}mangas/publishers`);
   }
 
-  createManga(manga: MangaPayload, cover: File): Observable<Manga> {
-    const form = jsonPart('manga', manga);
-    form.append('file', cover);
-    return this.http.post<Manga>(`${API}manga/new`, form);
+  createManga(manga: MangaPayload, cover: File): Observable<MangaDetail> {
+    return this.http.post<MangaDetail>(`${API}mangas`, filePart('cover', cover, jsonPart('manga', manga)));
   }
 
-  updateManga(id: string, manga: MangaPayload): Observable<Manga> {
-    return this.http.put<Manga>(`${API}manga/${id}`, jsonPart('manga', manga));
+  updateManga(id: string, manga: MangaPayload): Observable<MangaDetail> {
+    return this.http.put<MangaDetail>(`${API}mangas/${id}`, manga);
   }
 
-  updateMangaCover(id: string, cover: File): Observable<Manga> {
-    const form = new FormData();
-    form.append('file', cover);
-    return this.http.put<Manga>(`${API}manga/poster/${id}`, form);
+  updateMangaCover(id: string, cover: File): Observable<MangaDetail> {
+    return this.http.put<MangaDetail>(`${API}mangas/${id}/cover`, filePart('cover', cover));
   }
 
   deleteManga(id: string): Observable<void> {
-    return this.http.delete<void>(`${API}manga/${id}`);
+    return this.http.delete<void>(`${API}mangas/${id}`);
   }
 
   // ---------- Volúmenes
-  volumenes(page = 0, size = 100): Observable<Page<Volumen>> {
-    return this.http.get<Page<Volumen>>(`${API}volumen/all`, { params: pageParams(page, size) });
+  createVolume(mangaId: string, volume: VolumePayload, cover: File): Observable<Volume> {
+    return this.http.post<Volume>(`${API}mangas/${mangaId}/volumes`, filePart('cover', cover, jsonPart('volume', volume)));
   }
 
-  createVolumen(idManga: string, volumen: VolumenPayload, cover: File): Observable<Volumen> {
-    const form = jsonPart('volumen', volumen);
-    form.append('file', cover);
-    return this.http.post<Volumen>(`${API}volumen/new/${idManga}`, form);
+  updateVolume(id: string, volume: VolumePayload): Observable<Volume> {
+    return this.http.put<Volume>(`${API}volumes/${id}`, volume);
   }
 
-  updateVolumen(id: string, volumen: VolumenPayload): Observable<Volumen> {
-    return this.http.put<Volumen>(`${API}volumen/${id}`, jsonPart('volumen', volumen));
+  updateVolumeCover(id: string, cover: File): Observable<Volume> {
+    return this.http.put<Volume>(`${API}volumes/${id}/cover`, filePart('cover', cover));
   }
 
-  updateVolumenCover(id: string, cover: File): Observable<Volumen> {
-    const form = new FormData();
-    form.append('file', cover);
-    return this.http.put<Volumen>(`${API}volumen/poster/${id}`, form);
+  deleteVolume(id: string): Observable<void> {
+    return this.http.delete<void>(`${API}volumes/${id}`);
   }
 
-  deleteVolumen(id: string): Observable<void> {
-    return this.http.delete<void>(`${API}volumen/${id}`);
+  // ---------- Personajes
+  createCharacter(mangaId: string, character: CharacterPayload, image: File | null): Observable<MangaCharacter> {
+    const form = jsonPart('character', character);
+    if (image) form.append('image', image);
+    return this.http.post<MangaCharacter>(`${API}mangas/${mangaId}/characters`, form);
+  }
+
+  updateCharacter(id: string, character: CharacterPayload): Observable<MangaCharacter> {
+    return this.http.put<MangaCharacter>(`${API}characters/${id}`, character);
+  }
+
+  updateCharacterImage(id: string, image: File): Observable<MangaCharacter> {
+    return this.http.put<MangaCharacter>(`${API}characters/${id}/image`, filePart('image', image));
+  }
+
+  deleteCharacter(id: string): Observable<void> {
+    return this.http.delete<void>(`${API}characters/${id}`);
+  }
+
+  // ---------- Reseñas
+  reviews(mangaId: string, page = 0, size = 5): Observable<Page<Review>> {
+    return this.http.get<Page<Review>>(`${API}mangas/${mangaId}/reviews`, { params: params({ page, size }) });
+  }
+
+  deleteReview(id: string): Observable<void> {
+    return this.http.delete<void>(`${API}reviews/${id}`);
   }
 
   // ---------- Categorías
-  categories(page = 0, size = 100): Observable<Page<Category>> {
-    return this.http.get<Page<Category>>(`${API}category/all`, { params: pageParams(page, size) });
+  categories(): Observable<Category[]> {
+    return this.http.get<Category[]>(`${API}categories`);
   }
 
   createCategory(category: CategoryPayload): Observable<Category> {
-    return this.http.post<Category>(`${API}category/new`, jsonPart('category', category));
+    return this.http.post<Category>(`${API}categories`, category);
   }
 
   updateCategory(id: string, category: CategoryPayload): Observable<Category> {
-    return this.http.put<Category>(`${API}category/${id}`, jsonPart('category', category));
+    return this.http.put<Category>(`${API}categories/${id}`, category);
   }
 
   deleteCategory(id: string): Observable<void> {
-    return this.http.delete<void>(`${API}category/${id}`);
+    return this.http.delete<void>(`${API}categories/${id}`);
   }
 }

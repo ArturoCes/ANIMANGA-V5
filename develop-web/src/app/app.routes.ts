@@ -37,9 +37,9 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/users/users.component').then((m) => m.UsersComponent),
       },
       {
-        path: 'compras',
-        title: 'Compras · Animanga',
-        loadComponent: () => import('./pages/purchases/purchases.component').then((m) => m.PurchasesComponent),
+        path: 'pedidos',
+        title: 'Pedidos · Animanga',
+        loadComponent: () => import('./pages/orders/orders.component').then((m) => m.OrdersComponent),
       },
       {
         path: 'perfil',

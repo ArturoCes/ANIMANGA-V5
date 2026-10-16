@@ -4,9 +4,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { UI } from '../../shared/material';
 import { CatalogService } from '../../core/catalog.service';
 import { NotifyService } from '../../core/notify.service';
-import { Manga, Volumen } from '../../core/models';
+import { avatarUrl } from '../../core/api';
+import { MangaCharacter, MangaDetail, Review, Volume } from '../../core/models';
 import { MangaFormDialog } from '../mangas/manga-form.dialog';
-import { VolumenFormDialog } from './volumen-form.dialog';
+import { VolumeFormDialog } from './volumen-form.dialog';
+import { CharacterFormDialog } from './character-form.dialog';
 
 @Component({
   standalone: true,
@@ -16,81 +18,122 @@ import { VolumenFormDialog } from './volumen-form.dialog';
 
     <mat-progress-bar *ngIf="!manga" mode="indeterminate" />
 
-    <ng-container *ngIf="manga">
+    <ng-container *ngIf="manga as m">
       <section class="card hero">
-        <img class="cover" [src]="manga.posterPath | imageUrl" [alt]="'Portada de ' + manga.name" />
+        <img class="cover" [src]="m.coverImage | imageUrl" [alt]="'Portada de ' + m.title" />
         <div class="info">
           <div class="info-head">
             <div>
-              <h1>{{ manga.name }}</h1>
+              <h1>{{ m.title }}</h1>
               <p class="muted">
-                {{ manga.author }}<span *ngIf="manga.publisher"> · {{ manga.publisher }}</span>
-                <span *ngIf="manga.releaseDate"> · {{ manga.releaseDate | date: 'longDate' }}</span>
+                {{ m.author }}<span *ngIf="m.publisher"> · {{ m.publisher }}</span>
+                <span *ngIf="m.releaseDate"> · {{ m.releaseDate | date: 'longDate' }}</span>
               </p>
             </div>
             <button mat-stroked-button (click)="edit()"><mat-icon>edit</mat-icon> Editar</button>
           </div>
-          <div class="tags">
-            <span class="tag" *ngFor="let c of manga.categories">{{ c.name }}</span>
-          </div>
-          <p class="description">{{ manga.description }}</p>
+          <div class="tags"><span class="tag" *ngFor="let c of m.categories">{{ c.name }}</span></div>
+          <p class="description">{{ m.synopsis }}</p>
           <div class="facts">
-            <div><span class="fact-value">{{ manga.volumenes.length }}</span><span class="muted">volúmenes</span></div>
+            <div><span class="fact-value">{{ m.volumes.length }}</span><span class="muted">volúmenes</span></div>
             <div><span class="fact-value">{{ stock }}</span><span class="muted">uds. en stock</span></div>
-            <div><span class="fact-value">{{ minPrice | currency: 'EUR' }}</span><span class="muted">desde</span></div>
+            <div><span class="fact-value">{{ m.unitsSold }}</span><span class="muted">vendidas</span></div>
+            <div>
+              <span class="fact-value"><mat-icon class="star">star</mat-icon>{{ m.ratingCount ? (m.ratingAverage | number: '1.1-1') : '—' }}</span>
+              <span class="muted">{{ m.ratingCount }} reseñas</span>
+            </div>
           </div>
         </div>
       </section>
 
+      <!-- Volúmenes -->
       <div class="page-header section-header">
         <h2>Volúmenes</h2>
-        <button mat-flat-button color="primary" (click)="openVolumen()">
-          <mat-icon>add</mat-icon> Nuevo volumen
-        </button>
+        <button mat-flat-button color="primary" (click)="openVolume()"><mat-icon>add</mat-icon> Nuevo volumen</button>
       </div>
-
       <div class="card table-card">
         <div class="table-scroll">
-          <table mat-table [dataSource]="volumes">
+          <table mat-table [dataSource]="m.volumes">
             <ng-container matColumnDef="cover">
               <th mat-header-cell *matHeaderCellDef></th>
-              <td mat-cell *matCellDef="let v"><img class="thumb" [src]="v.posterPath | imageUrl" alt="" /></td>
+              <td mat-cell *matCellDef="let v"><img class="thumb" [src]="v.coverImage | imageUrl" alt="" /></td>
             </ng-container>
-            <ng-container matColumnDef="nombre">
-              <th mat-header-cell *matHeaderCellDef>Nombre</th>
-              <td mat-cell *matCellDef="let v"><strong>{{ v.nombre }}</strong></td>
+            <ng-container matColumnDef="title">
+              <th mat-header-cell *matHeaderCellDef>Volumen</th>
+              <td mat-cell *matCellDef="let v"><strong>{{ v.title }}</strong><div class="muted small">Tomo {{ v.number }}</div></td>
             </ng-container>
             <ng-container matColumnDef="isbn">
               <th mat-header-cell *matHeaderCellDef>ISBN</th>
               <td mat-cell *matCellDef="let v" class="mono">{{ v.isbn || '—' }}</td>
             </ng-container>
-            <ng-container matColumnDef="precio">
+            <ng-container matColumnDef="price">
               <th mat-header-cell *matHeaderCellDef>Precio</th>
-              <td mat-cell *matCellDef="let v">{{ v.precio | currency: 'EUR' }}</td>
+              <td mat-cell *matCellDef="let v">{{ v.price | currency: 'EUR' }}</td>
             </ng-container>
-            <ng-container matColumnDef="cantidad">
+            <ng-container matColumnDef="stock">
               <th mat-header-cell *matHeaderCellDef>Stock</th>
               <td mat-cell *matCellDef="let v">
-                <span class="badge" [class.badge-danger]="v.cantidad === 0" [class.badge-warn]="v.cantidad > 0 && v.cantidad <= 5"
-                      [class.badge-ok]="v.cantidad > 5">
-                  {{ v.cantidad === 0 ? 'Agotado' : v.cantidad + ' uds.' }}
-                </span>
+                <span class="badge" [class.badge-danger]="v.stock === 0" [class.badge-warn]="v.stock > 0 && v.stock <= 5"
+                      [class.badge-ok]="v.stock > 5">{{ v.stock === 0 ? 'Agotado' : v.stock + ' uds.' }}</span>
               </td>
             </ng-container>
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef></th>
               <td mat-cell *matCellDef="let v" class="actions">
-                <button mat-icon-button (click)="openVolumen(v)" matTooltip="Editar"><mat-icon>edit</mat-icon></button>
-                <button mat-icon-button (click)="removeVolumen(v)" matTooltip="Eliminar"><mat-icon>delete</mat-icon></button>
+                <button mat-icon-button (click)="openVolume(v)" matTooltip="Editar"><mat-icon>edit</mat-icon></button>
+                <button mat-icon-button (click)="removeVolume(v)" matTooltip="Eliminar"><mat-icon>delete</mat-icon></button>
               </td>
             </ng-container>
-            <tr mat-header-row *matHeaderRowDef="columns"></tr>
-            <tr mat-row *matRowDef="let row; columns: columns"></tr>
+            <tr mat-header-row *matHeaderRowDef="volumeColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: volumeColumns"></tr>
             <tr class="mat-row" *matNoDataRow>
-              <td class="empty-cell" [attr.colspan]="columns.length">Este manga todavía no tiene volúmenes</td>
+              <td class="empty-cell" [attr.colspan]="volumeColumns.length">Este manga todavía no tiene volúmenes</td>
             </tr>
           </table>
         </div>
+      </div>
+
+      <!-- Personajes -->
+      <div class="page-header section-header">
+        <h2>Personajes</h2>
+        <button mat-stroked-button (click)="openCharacter()"><mat-icon>person_add</mat-icon> Añadir personaje</button>
+      </div>
+      <div class="characters">
+        <div class="card character" *ngFor="let c of m.characters">
+          <img [src]="c.image | imageUrl" alt="" />
+          <div class="character-info">
+            <strong>{{ c.name }}</strong>
+            <span class="muted small" *ngIf="c.age">{{ c.age }} años</span>
+            <p class="muted small">{{ c.description }}</p>
+          </div>
+          <div class="character-actions">
+            <button mat-icon-button (click)="openCharacter(c)" matTooltip="Editar"><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button (click)="removeCharacter(c)" matTooltip="Eliminar"><mat-icon>delete</mat-icon></button>
+          </div>
+        </div>
+        <p class="muted" *ngIf="!m.characters.length">Sin personajes todavía.</p>
+      </div>
+
+      <!-- Reseñas -->
+      <div class="page-header section-header"><h2>Reseñas</h2></div>
+      <div class="card">
+        <p class="muted" *ngIf="!reviews.length">Nadie ha valorado este manga todavía.</p>
+        <div class="review" *ngFor="let r of reviews">
+          <img class="avatar" [src]="avatar(r.author.avatar, r.author.fullName)" alt="" />
+          <div class="review-main">
+            <div class="review-head">
+              <strong>{{ r.author.fullName }}</strong>
+              <span class="stars">
+                <mat-icon *ngFor="let s of [1, 2, 3, 4, 5]">{{ s <= r.rating ? 'star' : 'star_border' }}</mat-icon>
+              </span>
+              <span class="badge badge-ok" *ngIf="r.verifiedPurchase">Compra verificada</span>
+              <span class="muted small">{{ r.createdAt | date: 'd MMM y' }}</span>
+            </div>
+            <p *ngIf="r.comment">{{ r.comment }}</p>
+          </div>
+          <button mat-icon-button (click)="removeReview(r)" matTooltip="Borrar reseña (moderación)"><mat-icon>delete</mat-icon></button>
+        </div>
+        <button mat-button color="primary" *ngIf="moreReviews" (click)="loadReviews(true)">Ver más reseñas</button>
       </div>
     </ng-container>
   `,
@@ -105,10 +148,25 @@ import { VolumenFormDialog } from './volumen-form.dialog';
      .description { line-height: 1.6; max-width: 70ch; }
      .facts { display: flex; gap: 32px; margin-top: 20px; flex-wrap: wrap; }
      .facts div { display: flex; flex-direction: column; }
-     .fact-value { font-size: 22px; font-weight: 700; }
+     .fact-value { font-size: 22px; font-weight: 700; display: inline-flex; align-items: center; }
+     .star { color: #f5a623; }
      .section-header { margin-top: 28px; }
      .section-header h2 { margin: 0; }
      .mono { font-family: ui-monospace, monospace; font-size: 13px; }
+     .small { font-size: 13px; }
+     .characters { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+     .character { display: flex; gap: 12px; align-items: flex-start; padding: 14px; }
+     .character img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+     .character-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+     .character-info p { margin: 4px 0 0; }
+     .character-actions { display: flex; flex-direction: column; }
+     .review { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); }
+     .review:first-of-type { border-top: none; }
+     .review .avatar { width: 40px; height: 40px; border-radius: 50%; }
+     .review-main { flex: 1; }
+     .review-main p { margin: 6px 0 0; line-height: 1.5; }
+     .review-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+     .stars mat-icon { color: #f5a623; font-size: 18px; width: 18px; height: 18px; }
      @media (max-width: 700px) {
        .hero { flex-direction: column; align-items: center; }
        .cover { width: 160px; }
@@ -122,30 +180,41 @@ export class MangaDetailComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotifyService);
 
-  readonly columns = ['cover', 'nombre', 'isbn', 'precio', 'cantidad', 'actions'];
-  manga: Manga | null = null;
-  volumes: Volumen[] = [];
+  readonly volumeColumns = ['cover', 'title', 'isbn', 'price', 'stock', 'actions'];
+  readonly avatar = avatarUrl;
+  manga: MangaDetail | null = null;
+  reviews: Review[] = [];
+  moreReviews = false;
+  private reviewPage = 0;
 
   get stock(): number {
-    return this.volumes.reduce((s, v) => s + v.cantidad, 0);
+    return this.manga?.volumes.reduce((s, v) => s + v.stock, 0) ?? 0;
   }
 
-  get minPrice(): number {
-    return this.volumes.length ? Math.min(...this.volumes.map((v) => v.precio)) : 0;
+  private get id(): string {
+    return this.route.snapshot.paramMap.get('id')!;
   }
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(() => this.load());
+    this.route.paramMap.subscribe(() => {
+      this.load();
+      this.loadReviews();
+    });
   }
 
   load(): void {
-    const id = this.route.snapshot.paramMap.get('id')!;
-    this.catalog.manga(id).subscribe({
-      next: (m) => {
-        this.manga = m;
-        this.volumes = [...m.volumenes].sort((a, b) =>
-          a.nombre.localeCompare(b.nombre, 'es', { numeric: true })
-        );
+    this.catalog.manga(this.id).subscribe({
+      next: (m) => (this.manga = m),
+      error: (err) => this.notify.error(err),
+    });
+  }
+
+  loadReviews(more = false): void {
+    this.reviewPage = more ? this.reviewPage + 1 : 0;
+    this.catalog.reviews(this.id, this.reviewPage, 5).subscribe({
+      next: (page) => {
+        this.reviews = more ? [...this.reviews, ...page.content] : page.content;
+        this.moreReviews = !page.last;
       },
       error: (err) => this.notify.error(err),
     });
@@ -158,29 +227,45 @@ export class MangaDetailComponent implements OnInit {
       .subscribe((saved) => saved && this.load());
   }
 
-  openVolumen(volumen?: Volumen): void {
+  openVolume(volume?: Volume): void {
     this.dialog
-      .open(VolumenFormDialog, {
-        data: { manga: this.manga!, volumen: volumen ?? null },
-        width: '560px',
-        maxWidth: '95vw',
-      })
+      .open(VolumeFormDialog, { data: { manga: this.manga!, volume: volume ?? null }, width: '560px', maxWidth: '95vw' })
       .afterClosed()
       .subscribe((saved) => saved && this.load());
   }
 
-  removeVolumen(v: Volumen): void {
-    this.notify
-      .confirm({ title: 'Eliminar volumen', message: `¿Eliminar "${v.nombre}"?`, confirmText: 'Eliminar', danger: true })
-      .subscribe((ok) => {
-        if (!ok) return;
-        this.catalog.deleteVolumen(v.id).subscribe({
-          next: () => {
-            this.notify.success('Volumen eliminado');
-            this.load();
-          },
-          error: (err) => this.notify.error(err),
-        });
-      });
+  removeVolume(v: Volume): void {
+    this.confirmDelete('Eliminar volumen', `¿Eliminar "${v.title}"? Los pedidos que lo incluyen se conservan.`, () =>
+      this.catalog.deleteVolume(v.id).subscribe({
+        next: () => { this.notify.success('Volumen eliminado'); this.load(); },
+        error: (err) => this.notify.error(err),
+      }));
+  }
+
+  openCharacter(character?: MangaCharacter): void {
+    this.dialog
+      .open(CharacterFormDialog, { data: { mangaId: this.id, character: character ?? null }, width: '520px', maxWidth: '95vw' })
+      .afterClosed()
+      .subscribe((saved) => saved && this.load());
+  }
+
+  removeCharacter(c: MangaCharacter): void {
+    this.confirmDelete('Eliminar personaje', `¿Eliminar a ${c.name}?`, () =>
+      this.catalog.deleteCharacter(c.id).subscribe({
+        next: () => { this.notify.success('Personaje eliminado'); this.load(); },
+        error: (err) => this.notify.error(err),
+      }));
+  }
+
+  removeReview(r: Review): void {
+    this.confirmDelete('Borrar reseña', `¿Borrar la reseña de ${r.author.fullName}?`, () =>
+      this.catalog.deleteReview(r.id).subscribe({
+        next: () => { this.notify.success('Reseña borrada'); this.load(); this.loadReviews(); },
+        error: (err) => this.notify.error(err),
+      }));
+  }
+
+  private confirmDelete(title: string, message: string, action: () => void): void {
+    this.notify.confirm({ title, message, confirmText: 'Eliminar', danger: true }).subscribe((ok) => ok && action());
   }
 }

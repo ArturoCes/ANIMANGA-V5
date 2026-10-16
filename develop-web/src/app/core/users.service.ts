@@ -1,57 +1,67 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { API, jsonPart } from './api';
-import { Page, Purchase, User, UserSearch } from './models';
+import { API } from './api';
+import { Order, OrderStatus, Page, Role, Stats, User } from './models';
 
+/** Administración (usuarios, pedidos, estadísticas) y la cuenta del propio administrador. */
 @Injectable({ providedIn: 'root' })
 export class UsersService {
   constructor(private http: HttpClient) {}
 
-  users(page = 0, size = 10): Observable<Page<User>> {
-    const params = new HttpParams().set('page', page).set('size', size);
-    return this.http.get<Page<User>>(`${API}all`, { params });
+  // ---------- Usuarios
+  users(query: { q?: string; role?: Role | null; page?: number; size?: number }): Observable<Page<User>> {
+    let params = new HttpParams().set('page', query.page ?? 0).set('size', query.size ?? 10);
+    if (query.q) params = params.set('q', query.q);
+    if (query.role) params = params.set('role', query.role);
+    return this.http.get<Page<User>>(`${API}admin/users`, { params });
   }
 
-  search(search: UserSearch, page = 0, size = 10): Observable<Page<User>> {
-    const params = new HttpParams().set('page', page).set('size', size);
-    return this.http.post<Page<User>>(`${API}find/`, jsonPart('search', search), { params });
+  update(id: string, changes: { fullName: string; email: string }): Observable<User> {
+    return this.http.put<User>(`${API}admin/users/${id}`, changes);
   }
 
-  me(): Observable<User> {
-    return this.http.get<User>(`${API}me`);
-  }
-
-  update(user: User, changes: { fullName: string; email: string }): Observable<User> {
-    return this.http.put<User>(
-      `${API}user/${user.id}`,
-      jsonPart('user', { ...changes, username: user.username })
-    );
-  }
-
-  updateAvatar(id: string, image: File): Observable<User> {
-    const form = new FormData();
-    form.append('image', image);
-    return this.http.put<User>(`${API}image/${id}`, form);
-  }
-
-  changePassword(password: string, passwordNew: string, passwordNewVerify: string): Observable<User> {
-    return this.http.put<User>(
-      `${API}change`,
-      jsonPart('user', { password, passwordNew, passwordNewVerify })
-    );
-  }
-
-  setAdmin(id: string, admin: boolean): Observable<User> {
-    return this.http.put<User>(`${API}${admin ? 'give' : 'remove'}/admin/${id}`, null);
+  setRole(id: string, role: Role): Observable<User> {
+    return this.http.patch<User>(`${API}admin/users/${id}/role`, { role });
   }
 
   delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${API}${id}`);
+    return this.http.delete<void>(`${API}admin/users/${id}`);
   }
 
-  purchases(page = 0, size = 10): Observable<Page<Purchase>> {
-    const params = new HttpParams().set('page', page).set('size', size);
-    return this.http.get<Page<Purchase>>(`${API}purchase/all`, { params });
+  // ---------- Pedidos
+  orders(query: { status?: OrderStatus | null; q?: string; page?: number; size?: number }): Observable<Page<Order>> {
+    let params = new HttpParams().set('page', query.page ?? 0).set('size', query.size ?? 10);
+    if (query.status) params = params.set('status', query.status);
+    if (query.q) params = params.set('q', query.q);
+    return this.http.get<Page<Order>>(`${API}admin/orders`, { params });
+  }
+
+  setOrderStatus(id: string, status: OrderStatus): Observable<Order> {
+    return this.http.patch<Order>(`${API}admin/orders/${id}/status`, { status });
+  }
+
+  // ---------- Estadísticas
+  stats(months = 6): Observable<Stats> {
+    return this.http.get<Stats>(`${API}admin/stats`, { params: { months } });
+  }
+
+  // ---------- Mi cuenta
+  me(): Observable<User> {
+    return this.http.get<User>(`${API}users/me`);
+  }
+
+  updateMe(changes: { fullName: string; email: string }): Observable<User> {
+    return this.http.put<User>(`${API}users/me`, changes);
+  }
+
+  updateAvatar(image: File): Observable<User> {
+    const form = new FormData();
+    form.append('image', image);
+    return this.http.put<User>(`${API}users/me/avatar`, form);
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http.put<void>(`${API}users/me/password`, { currentPassword, newPassword });
   }
 }

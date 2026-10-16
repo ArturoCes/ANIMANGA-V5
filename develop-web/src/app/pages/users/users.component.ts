@@ -8,6 +8,7 @@ import { UsersService } from '../../core/users.service';
 import { NotifyService } from '../../core/notify.service';
 import { AuthService } from '../../core/auth.service';
 import { Role, User } from '../../core/models';
+import { avatarUrl } from '../../core/api';
 
 @Component({
   standalone: true,
@@ -55,7 +56,7 @@ export class UserFormDialog {
       return;
     }
     this.saving = true;
-    this.users.update(this.user, this.form.getRawValue()).subscribe({
+    this.users.update(this.user.id, this.form.getRawValue()).subscribe({
       next: (u) => {
         this.notify.success('Usuario actualizado');
         this.ref.close(u);
@@ -99,7 +100,7 @@ export class UserFormDialog {
             <th mat-header-cell *matHeaderCellDef>Usuario</th>
             <td mat-cell *matCellDef="let u">
               <div class="user-cell">
-                <img class="avatar" [src]="u.image" alt="" />
+                <img class="avatar" [src]="avatar(u.avatar, u.fullName)" alt="" />
                 <div>
                   <strong>{{ u.fullName }}</strong>
                   <div class="muted small">&#64;{{ u.username }}</div>
@@ -115,6 +116,7 @@ export class UserFormDialog {
             <th mat-header-cell *matHeaderCellDef>Rol</th>
             <td mat-cell *matCellDef="let u">
               <span class="badge" [class.badge-brand]="u.role === 'ADMIN'">{{ u.role === 'ADMIN' ? 'Administrador' : 'Cliente' }}</span>
+              <mat-icon class="unverified" *ngIf="!u.emailVerified" matTooltip="Email sin verificar">mark_email_unread</mat-icon>
             </td>
           </ng-container>
           <ng-container matColumnDef="actions">
@@ -145,7 +147,8 @@ export class UserFormDialog {
   styles: [
     `.user-cell { display: flex; align-items: center; gap: 12px; }
      .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-     .small { font-size: 13px; }`,
+     .small { font-size: 13px; }
+     .unverified { vertical-align: middle; margin-left: 6px; font-size: 18px; width: 18px; height: 18px; color: var(--warn); }`,
   ],
 })
 export class UsersComponent implements OnInit {
@@ -153,6 +156,7 @@ export class UsersComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotifyService);
   readonly me = inject(AuthService).user();
+  readonly avatar = avatarUrl;
 
   readonly columns = ['user', 'email', 'role', 'actions'];
   readonly search = new FormControl('', { nonNullable: true });
@@ -177,10 +181,7 @@ export class UsersComponent implements OnInit {
     this.loading = true;
     const term = this.search.value.trim();
     const role = this.role.value;
-    const request =
-      term || role
-        ? this.service.search({ username: term, fullName: term, email: term, role }, this.page, this.size)
-        : this.service.users(this.page, this.size);
+    const request = this.service.users({ q: term, role, page: this.page, size: this.size });
     request.subscribe({
       next: (res) => {
         this.users = res.content;
@@ -213,7 +214,7 @@ export class UsersComponent implements OnInit {
       })
       .subscribe((ok) => {
         if (!ok) return;
-        this.service.setAdmin(user.id, makeAdmin).subscribe({
+        this.service.setRole(user.id, makeAdmin ? 'ADMIN' : 'USER').subscribe({
           next: () => {
             this.notify.success('Rol actualizado');
             this.load();
@@ -234,7 +235,7 @@ export class UsersComponent implements OnInit {
     this.notify
       .confirm({
         title: 'Eliminar usuario',
-        message: `Se eliminará la cuenta de ${user.fullName} (@${user.username}).`,
+        message: `Se eliminará la cuenta de ${user.fullName} (@${user.username}). Solo se pueden eliminar usuarios sin pedidos.`,
         confirmText: 'Eliminar',
         danger: true,
       })

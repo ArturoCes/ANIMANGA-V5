@@ -1,39 +1,63 @@
 export interface Page<T> {
   content: T[];
+  page: number;
+  size: number;
   totalElements: number;
   totalPages: number;
-  number: number;
-  size: number;
-  empty: boolean;
+  last: boolean;
 }
 
 export interface Category {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
 }
 
-export interface Volumen {
-  id: string;
-  nombre: string;
-  precio: number;
-  isbn: string;
-  cantidad: number;
-  posterPath: string;
-  idManga: string;
-  nameManga: string;
-}
-
-export interface Manga {
+export interface CategoryRef {
   id: string;
   name: string;
-  description: string;
+}
+
+export interface Volume {
+  id: string;
+  mangaId: string;
+  mangaTitle: string;
+  number: number;
+  title: string;
+  price: number;
+  isbn: string | null;
+  stock: number;
+  coverImage: string;
+}
+
+export interface MangaCharacter {
+  id: string;
+  name: string;
+  age: number | null;
+  description: string | null;
+  image: string | null;
+}
+
+export interface MangaSummary {
+  id: string;
+  title: string;
+  author: string | null;
+  publisher: string | null;
   releaseDate: string | null;
-  posterPath: string;
-  author: string;
-  publisher: string;
-  categories: Category[];
-  volumenes: Volumen[];
+  coverImage: string;
+  categories: CategoryRef[];
+  minPrice: number | null;
+  ratingAverage: number;
+  ratingCount: number;
+  volumeCount: number;
+  inStock: boolean;
+  unitsSold: number;
+}
+
+export interface MangaDetail extends Omit<MangaSummary, 'volumeCount'> {
+  synopsis: string;
+  volumes: Volume[];
+  characters: MangaCharacter[];
 }
 
 export type Role = 'ADMIN' | 'USER';
@@ -43,48 +67,93 @@ export interface User {
   username: string;
   fullName: string;
   email: string;
-  image: string;
+  avatar: string | null;
   role: Role;
-  idCart: string;
+  emailVerified: boolean;
   createdAt: string;
 }
 
-export interface LoginResponse extends User {
-  token: string;
+export interface AuthResponse {
+  accessToken: string;
   refreshToken: string;
+  expiresIn: number;
+  user: User;
 }
 
-export interface Purchase {
-  idPurchase: string;
-  numCreditCard: string;
-  idUser: string;
-  username: string;
-  fullName: string;
-  idVolumen: string;
-  nombreVolumen: string;
-  nameManga: string;
-  posterPath: string;
+export type OrderStatus = 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+
+export interface OrderLine {
+  volumeId: string | null;
+  mangaId: string | null;
+  volumeTitle: string;
+  mangaTitle: string;
+  coverImage: string | null;
+  unitPrice: number;
   quantity: number;
-  precio: number;
+  subtotal: number;
+}
+
+export interface Order {
+  id: string;
+  number: string;
+  status: OrderStatus;
+  createdAt: string;
+  updatedAt: string;
+  customer: { id: string; username: string; fullName: string; email: string };
+  shipping: { fullName: string; address: string; city: string; postalCode: string; phone: string };
+  cardLast4: string;
   total: number;
-  purchaseDate: string;
+  totalUnits: number;
+  items: OrderLine[];
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  author: { username: string; fullName: string; avatar: string | null };
+  verifiedPurchase: boolean;
+}
+
+export interface Stats {
+  totals: {
+    mangas: number;
+    volumes: number;
+    unitsInStock: number;
+    customers: number;
+    orders: number;
+    revenue: number;
+    averageOrder: number;
+  };
+  revenueByMonth: { month: string; revenue: number; orders: number; units: number }[];
+  ordersByStatus: Record<OrderStatus, number>;
+  topVolumes: { volumeId: string; title: string; coverImage: string; units: number; revenue: number }[];
+  lowStock: Volume[];
+  recentOrders: Order[];
 }
 
 export interface MangaPayload {
-  name: string;
-  description: string;
+  title: string;
   author: string;
   publisher: string;
   releaseDate: string | null;
-  categories: { id: string }[];
+  synopsis: string;
+  categoryIds: string[];
 }
 
-export interface VolumenPayload {
-  idManga: string;
-  nombre: string;
-  precio: number;
+export interface VolumePayload {
+  number: number;
+  title: string;
+  price: number;
   isbn: string;
-  cantidad: number;
+  stock: number;
+}
+
+export interface CharacterPayload {
+  name: string;
+  age: number | null;
+  description: string;
 }
 
 export interface CategoryPayload {
@@ -92,9 +161,9 @@ export interface CategoryPayload {
   description: string;
 }
 
-export interface UserSearch {
-  username?: string;
-  fullName?: string;
-  email?: string;
-  role?: Role | null;
-}
+export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
+  PAID: 'Pagado',
+  SHIPPED: 'Enviado',
+  DELIVERED: 'Entregado',
+  CANCELLED: 'Cancelado',
+};

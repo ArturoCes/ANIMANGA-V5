@@ -5,6 +5,7 @@ import { ImagePickerComponent } from '../../shared/image-picker.component';
 import { AuthService } from '../../core/auth.service';
 import { UsersService } from '../../core/users.service';
 import { NotifyService } from '../../core/notify.service';
+import { avatarUrl } from '../../core/api';
 
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   const { passwordNew, passwordNewVerify } = group.value;
@@ -18,7 +19,8 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
     <div class="page-header">
       <div>
         <h1>Mi perfil</h1>
-        <p class="muted">&#64;{{ auth.user()?.username }} · Administrador</p>
+        <p class="muted">&#64;{{ auth.user()?.username }} · Administrador
+          <span class="badge badge-warn" *ngIf="auth.user() && !auth.user()!.emailVerified">Email sin verificar</span></p>
       </div>
     </div>
 
@@ -26,7 +28,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
       <section class="card">
         <h2>Datos personales</h2>
         <form [formGroup]="profile" (ngSubmit)="saveProfile()" class="stack">
-          <app-image-picker label="Foto de perfil" [round]="true" [current]="auth.user()?.image ?? null"
+          <app-image-picker label="Foto de perfil" [round]="true" [current]="avatarOf()"
                             (picked)="avatar = $event" />
           <mat-form-field appearance="outline">
             <mat-label>Nombre completo</mat-label>
@@ -37,6 +39,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
             <mat-label>Email</mat-label>
             <input matInput type="email" formControlName="email" />
             <mat-error>Introduce un email válido</mat-error>
+            <mat-hint>Si lo cambias tendrás que confirmarlo desde el nuevo correo</mat-hint>
           </mat-form-field>
           <div>
             <button mat-flat-button color="primary" [disabled]="savingProfile || (profile.pristine && !avatar)">
@@ -104,6 +107,11 @@ export class ProfileComponent {
   );
 
   avatar: File | null = null;
+
+  avatarOf(): string | null {
+    const u = this.auth.user();
+    return u ? avatarUrl(u.avatar, u.fullName) : null;
+  }
   savingProfile = false;
   savingPassword = false;
 
@@ -111,10 +119,10 @@ export class ProfileComponent {
     const user = this.auth.user();
     if (!user || this.profile.invalid) return;
     this.savingProfile = true;
-    this.users.update(user, this.profile.getRawValue()).subscribe({
+    this.users.updateMe(this.profile.getRawValue()).subscribe({
       next: (updated) => {
         if (!this.avatar) return this.profileSaved(updated);
-        this.users.updateAvatar(user.id, this.avatar).subscribe({
+        this.users.updateAvatar(this.avatar).subscribe({
           next: (withAvatar) => this.profileSaved(withAvatar),
           error: (err) => this.profileFailed(err),
         });
@@ -125,9 +133,9 @@ export class ProfileComponent {
 
   savePassword(): void {
     if (this.password.invalid) return;
-    const { password, passwordNew, passwordNewVerify } = this.password.getRawValue();
+    const { password, passwordNew } = this.password.getRawValue();
     this.savingPassword = true;
-    this.users.changePassword(password, passwordNew, passwordNewVerify).subscribe({
+    this.users.changePassword(password, passwordNew).subscribe({
       next: () => {
         this.savingPassword = false;
         this.password.reset();
@@ -141,7 +149,7 @@ export class ProfileComponent {
   }
 
   private profileSaved(user: Parameters<AuthService['setUser']>[0]): void {
-    this.auth.setUser({ ...this.auth.user()!, ...user });
+    this.auth.setUser(user);
     this.avatar = null;
     this.savingProfile = false;
     this.profile.markAsPristine();

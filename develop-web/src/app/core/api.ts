@@ -6,11 +6,17 @@ export const API = environment.apiBaseUrl.endsWith('/')
   ? environment.apiBaseUrl
   : environment.apiBaseUrl + '/';
 
-/** Convierte un nombre de fichero devuelto por la API en una URL de imagen. */
-export function imageUrl(path: string | null | undefined): string {
-  if (!path) return 'assets/img/no-cover.svg';
-  if (path.startsWith('http')) return path;
-  return `${API}download/${encodeURIComponent(path)}`;
+/** Convierte el nombre de una imagen devuelto por la API en una URL. */
+export function imageUrl(name: string | null | undefined): string {
+  if (!name) return 'assets/img/no-cover.svg';
+  if (name.startsWith('http')) return name;
+  return `${API}images/${encodeURIComponent(name)}`;
+}
+
+/** Avatar del usuario o uno generado con sus iniciales. */
+export function avatarUrl(avatar: string | null | undefined, fullName: string): string {
+  if (avatar) return imageUrl(avatar);
+  return `https://ui-avatars.com/api/?background=673ab7&color=fff&name=${encodeURIComponent(fullName)}`;
 }
 
 /** Empaqueta un objeto como parte JSON de un multipart/form-data (@RequestPart en Spring). */
@@ -19,14 +25,13 @@ export function jsonPart(name: string, value: unknown, form = new FormData()): F
   return form;
 }
 
-/** Extrae un mensaje legible de los dos formatos de error que devuelve la API. */
+/** Extrae un mensaje legible del error de la API. */
 export function errorMessage(err: unknown): string {
   if (err instanceof HttpErrorResponse) {
     if (err.status === 0) return 'No se puede conectar con el servidor';
     const body = err.error ?? {};
-    const sub: { mensaje?: string }[] = body.subErrores ?? [];
-    if (sub.length) return sub.map((s) => s.mensaje).join('. ');
-    return body.mensaje ?? body.message ?? `Error ${err.status}`;
+    if (typeof body.message === 'string' && body.message) return body.message;
+    return `Error ${err.status}`;
   }
   return 'Ha ocurrido un error inesperado';
 }

@@ -1,0 +1,640 @@
+{
+ "categories": [
+  {
+   "name": "Shōnen",
+   "description": "Dirigido a un público adolescente: acción, superación personal y compañerismo."
+  },
+  {
+   "name": "Acción",
+   "description": "Combates, persecuciones y ritmo trepidante."
+  },
+  {
+   "name": "Sobrenatural",
+   "description": "Maldiciones, espíritus y poderes más allá de lo humano."
+  },
+  {
+   "name": "Fantasía oscura",
+   "description": "Mundos sombríos donde el horror y la fantasía se mezclan."
+  },
+  {
+   "name": "Escolar",
+   "description": "Historias ambientadas en institutos y academias."
+  },
+  {
+   "name": "Aventura",
+   "description": "Viajes, exploración y grandes objetivos."
+  },
+  {
+   "name": "Comedia",
+   "description": "Humor y situaciones disparatadas."
+  },
+  {
+   "name": "Drama",
+   "description": "Historias con gran carga emocional."
+  }
+ ],
+ "series": [
+  {
+   "title": "Jujutsu Kaisen",
+   "author": "Gege Akutami",
+   "publisher": "Norma Editorial",
+   "releaseDate": "2018-03-05",
+   "synopsis": "Yuji Itadori es un estudiante con una fuerza física fuera de lo común. Tras tragarse un dedo maldito para salvar a sus amigos, pasa a compartir cuerpo con Ryomen Sukuna, el rey de las maldiciones, e ingresa en la Escuela Técnica de Hechicería de Tokio.",
+   "cover": "jjk-01.jpg",
+   "categories": [
+    "Shōnen",
+    "Acción",
+    "Sobrenatural",
+    "Fantasía oscura"
+   ],
+   "volumes": [
+    {
+     "number": 1,
+     "price": 8.5,
+     "stock": 25,
+     "isbn": "9788467940015",
+     "cover": "jjk-01.jpg"
+    },
+    {
+     "number": 2,
+     "price": 8.5,
+     "stock": 18,
+     "isbn": "9788467940022",
+     "cover": "jjk-02.jpg"
+    },
+    {
+     "number": 3,
+     "price": 8.5,
+     "stock": 12,
+     "isbn": "9788467940039",
+     "cover": "jjk-03.jpg"
+    },
+    {
+     "number": 5,
+     "price": 8.5,
+     "stock": 9,
+     "isbn": "9788467940053",
+     "cover": "jjk-05.jpg"
+    },
+    {
+     "number": 6,
+     "price": 8.5,
+     "stock": 3,
+     "isbn": "9788467940060",
+     "cover": "jjk-06.jpg"
+    },
+    {
+     "number": 7,
+     "price": 8.5,
+     "stock": 15,
+     "isbn": "9788467940077",
+     "cover": "jjk-07.jpg"
+    },
+    {
+     "number": 10,
+     "price": 8.95,
+     "stock": 0,
+     "isbn": "9788467940107",
+     "cover": "jjk-10.jpg"
+    },
+    {
+     "number": 13,
+     "price": 8.95,
+     "stock": 20,
+     "isbn": "9788467940138",
+     "cover": "jjk-13.jpg"
+    }
+   ],
+   "characters": [
+    {
+     "name": "Yuji Itadori",
+     "age": 15,
+     "description": "Protagonista. Recipiente de Ryomen Sukuna y estudiante de primer año.",
+     "image": "char-yuji.jpg"
+    },
+    {
+     "name": "Megumi Fushiguro",
+     "age": 15,
+     "description": "Hechicero que invoca shikigamis a través de sombras con la técnica de las Diez Sombras.",
+     "image": "char-megumi.jpg"
+    },
+    {
+     "name": "Nobara Kugisaki",
+     "age": 16,
+     "description": "Hechicera de primer año que combate con martillo y clavos malditos.",
+     "image": "char-nobara.jpg"
+    },
+    {
+     "name": "Aoi Todo",
+     "age": 18,
+     "description": "Estudiante de la escuela de Kioto, excéntrico y extraordinariamente fuerte.",
+     "image": "char-todo.jpg"
+    }
+   ]
+  },
+  {
+   "title": "Jujutsu Kaisen 0",
+   "author": "Gege Akutami",
+   "publisher": "Norma Editorial",
+   "releaseDate": "2017-04-28",
+   "synopsis": "Precuela de Jujutsu Kaisen. Yuta Okkotsu está atormentado por el espíritu de Rika, su amiga de la infancia, convertida en una maldición de grado especial. Satoru Gojo lo lleva a la escuela de hechicería para que aprenda a controlarla.",
+   "cover": "jjk-00.jpg",
+   "categories": [
+    "Shōnen",
+    "Sobrenatural",
+    "Escolar"
+   ],
+   "volumes": [
+    {
+     "number": 0,
+     "price": 9.5,
+     "stock": 30,
+     "isbn": "9788467941004",
+     "cover": "jjk-00.jpg"
+    }
+   ],
+   "characters": [
+    {
+     "name": "Yuta Okkotsu",
+     "age": 16,
+     "description": "Estudiante maldito por el espíritu de Rika Orimoto.",
+     "image": "char-yuta.jpg"
+    }
+   ]
+  },
+  {
+   "title": "One Piece",
+   "author": "Eiichirō Oda",
+   "publisher": "Planeta Cómic",
+   "releaseDate": "1997-12-24",
+   "synopsis": "Monkey D. Luffy, un joven con el cuerpo de goma tras comer una fruta del diablo, zarpa con su tripulación en busca del legendario tesoro One Piece para convertirse en el Rey de los Piratas.",
+   "cover": "op-01.jpg",
+   "categories": [
+    "Shōnen",
+    "Acción",
+    "Aventura",
+    "Comedia"
+   ],
+   "volumes": [
+    {
+     "number": 1,
+     "price": 8.5,
+     "stock": 30,
+     "isbn": "9788403000001",
+     "cover": "op-01.jpg"
+    },
+    {
+     "number": 2,
+     "price": 8.5,
+     "stock": 22,
+     "isbn": "9788403000002",
+     "cover": "op-02.jpg"
+    },
+    {
+     "number": 3,
+     "price": 8.5,
+     "stock": 14,
+     "isbn": "9788403000003",
+     "cover": "op-03.jpg"
+    },
+    {
+     "number": 4,
+     "price": 8.5,
+     "stock": 9,
+     "isbn": "9788403000004",
+     "cover": "op-04.jpg"
+    }
+   ],
+   "characters": [
+    {
+     "name": "Monkey D. Luffy",
+     "age": 17,
+     "description": "Capitán de los Piratas del Sombrero de Paja.",
+     "image": "char-luffy.jpg"
+    }
+   ]
+  },
+  {
+   "title": "Naruto",
+   "author": "Masashi Kishimoto",
+   "publisher": "Planeta Cómic",
+   "releaseDate": "2000-03-03",
+   "synopsis": "Naruto Uzumaki, un ninja revoltoso que lleva sellado en su interior al zorro de nueve colas, sueña con ser reconocido por su aldea y convertirse en Hokage.",
+   "cover": "nar-01.jpg",
+   "categories": [
+    "Shōnen",
+    "Acción",
+    "Aventura"
+   ],
+   "volumes": [
+    {
+     "number": 1,
+     "price": 8.95,
+     "stock": 18,
+     "isbn": "9788404000001",
+     "cover": "nar-01.jpg"
+    },
+    {
+     "number": 2,
+     "price": 8.95,
+     "stock": 15,
+     "isbn": "9788404000002",
+     "cover": "nar-02.jpg"
+    },
+    {
+     "number": 3,
+     "price": 8.95,
+     "stock": 4,
+     "isbn": "9788404000003",
+     "cover": "nar-03.jpg"
+    },
+    {
+     "number": 4,
+     "price": 8.95,
+     "stock": 11,
+     "isbn": "9788404000004",
+     "cover": "nar-04.jpg"
+    }
+   ],
+   "characters": [
+    {
+     "name": "Naruto Uzumaki",
+     "age": 12,
+     "description": "Ninja de la Hoja que aspira a ser Hokage.",
+     "image": "char-naruto.jpg"
+    }
+   ]
+  },
+  {
+   "title": "Ataque a los Titanes",
+   "author": "Hajime Isayama",
+   "publisher": "Norma Editorial",
+   "releaseDate": "2010-03-17",
+   "synopsis": "La humanidad sobrevive tras enormes murallas que la protegen de los titanes. Cuando un titán colosal abre una brecha, Eren Jaeger jura exterminarlos a todos.",
+   "cover": "snk-01.jpg",
+   "categories": [
+    "Shōnen",
+    "Acción",
+    "Fantasía oscura",
+    "Drama"
+   ],
+   "volumes": [
+    {
+     "number": 1,
+     "price": 8.5,
+     "stock": 20,
+     "isbn": "9788405000001",
+     "cover": "snk-01.jpg"
+    },
+    {
+     "number": 2,
+     "price": 8.5,
+     "stock": 0,
+     "isbn": "9788405000002",
+     "cover": "snk-02.jpg"
+    },
+    {
+     "number": 3,
+     "price": 8.5,
+     "stock": 12,
+     "isbn": "9788405000003",
+     "cover": "snk-03.jpg"
+    },
+    {
+     "number": 4,
+     "price": 8.5,
+     "stock": 7,
+     "isbn": "9788405000004",
+     "cover": "snk-04.jpg"
+    }
+   ],
+   "characters": [
+    {
+     "name": "Mikasa Ackerman",
+     "age": 15,
+     "description": "Soldado prodigio y protectora incondicional de Eren.",
+     "image": "char-mikasa.jpg"
+    }
+   ]
+  },
+  {
+   "title": "Guardianes de la Noche",
+   "author": "Koyoharu Gotōge",
+   "publisher": "Norma Editorial",
+   "releaseDate": "2016-06-03",
+   "synopsis": "Tras la masacre de su familia, Tanjiro Kamado se une a los cazadores de demonios para devolver la humanidad a su hermana Nezuko, convertida en demonio.",
+   "cover": "kny-01.jpg",
+   "categories": [
+    "Shōnen",
+    "Acción",
+    "Sobrenatural",
+    "Fantasía oscura"
+   ],
+   "volumes": [
+    {
+     "number": 1,
+     "price": 8.5,
+     "stock": 25,
+     "isbn": "9788406000001",
+     "cover": "kny-01.jpg"
+    },
+    {
+     "number": 2,
+     "price": 8.5,
+     "stock": 19,
+     "isbn": "9788406000002",
+     "cover": "kny-02.jpg"
+    },
+    {
+     "number": 3,
+     "price": 8.5,
+     "stock": 16,
+     "isbn": "9788406000003",
+     "cover": "kny-03.jpg"
+    },
+    {
+     "number": 4,
+     "price": 8.5,
+     "stock": 2,
+     "isbn": "9788406000004",
+     "cover": "kny-04.jpg"
+    }
+   ],
+   "characters": [
+    {
+     "name": "Tanjiro Kamado",
+     "age": 13,
+     "description": "Cazador de demonios con un olfato excepcional.",
+     "image": "char-tanjiro.jpg"
+    },
+    {
+     "name": "Zenitsu Agatsuma",
+     "age": 16,
+     "description": "Cobarde... hasta que se queda dormido.",
+     "image": "char-zenitsu.jpg"
+    }
+   ]
+  },
+  {
+   "title": "Chainsaw Man",
+   "author": "Tatsuki Fujimoto",
+   "publisher": "Norma Editorial",
+   "releaseDate": "2019-03-04",
+   "synopsis": "Denji, ahogado en deudas, se fusiona con su perro-demonio motosierra Pochita y acaba trabajando como cazador de demonios para el gobierno.",
+   "cover": "csm-01.jpg",
+   "categories": [
+    "Shōnen",
+    "Acción",
+    "Sobrenatural",
+    "Fantasía oscura"
+   ],
+   "volumes": [
+    {
+     "number": 1,
+     "price": 8.95,
+     "stock": 14,
+     "isbn": "9788407000001",
+     "cover": "csm-01.jpg"
+    },
+    {
+     "number": 2,
+     "price": 8.95,
+     "stock": 10,
+     "isbn": "9788407000002",
+     "cover": "csm-02.jpg"
+    },
+    {
+     "number": 3,
+     "price": 8.95,
+     "stock": 8,
+     "isbn": "9788407000003",
+     "cover": "csm-03.jpg"
+    },
+    {
+     "number": 4,
+     "price": 8.95,
+     "stock": 5,
+     "isbn": "9788407000004",
+     "cover": "csm-04.jpg"
+    }
+   ],
+   "characters": [
+    {
+     "name": "Power",
+     "age": null,
+     "description": "Demonio de la sangre, caótica y egocéntrica.",
+     "image": "char-power.jpg"
+    }
+   ]
+  },
+  {
+   "title": "Spy×Family",
+   "author": "Tatsuya Endō",
+   "publisher": "Ivrea",
+   "releaseDate": "2019-07-04",
+   "synopsis": "El espía Twilight forma una familia falsa para cumplir su misión, sin saber que su hija adoptiva lee mentes y su esposa es una asesina profesional.",
+   "cover": "sxf-01.jpg",
+   "categories": [
+    "Shōnen",
+    "Acción",
+    "Comedia"
+   ],
+   "volumes": [
+    {
+     "number": 1,
+     "price": 9.0,
+     "stock": 28,
+     "isbn": "9788408000001",
+     "cover": "sxf-01.jpg"
+    },
+    {
+     "number": 2,
+     "price": 9.0,
+     "stock": 21,
+     "isbn": "9788408000002",
+     "cover": "sxf-02.jpg"
+    },
+    {
+     "number": 3,
+     "price": 9.0,
+     "stock": 13,
+     "isbn": "9788408000003",
+     "cover": "sxf-03.jpg"
+    },
+    {
+     "number": 4,
+     "price": 9.0,
+     "stock": 6,
+     "isbn": "9788408000004",
+     "cover": "sxf-04.jpg"
+    }
+   ],
+   "characters": [
+    {
+     "name": "Loid Forger",
+     "age": 27,
+     "description": "El espía Twilight, padre de familia por encargo.",
+     "image": "char-loid.jpg"
+    },
+    {
+     "name": "Anya Forger",
+     "age": 6,
+     "description": "Niña telépata adoptada por Loid.",
+     "image": "char-anya.jpg"
+    },
+    {
+     "name": "Yor Forger",
+     "age": 27,
+     "description": "Funcionaria de día y asesina a sueldo de noche.",
+     "image": "char-yor.jpg"
+    }
+   ]
+  }
+ ],
+ "customers": [
+  {
+   "username": "demo",
+   "fullName": "Usuario Demo",
+   "email": "demo@animanga.dev"
+  },
+  {
+   "username": "laura",
+   "fullName": "Laura Martín",
+   "email": "laura@animanga.dev"
+  },
+  {
+   "username": "carlos",
+   "fullName": "Carlos Ruiz",
+   "email": "carlos@animanga.dev"
+  },
+  {
+   "username": "marta",
+   "fullName": "Marta Gil",
+   "email": "marta@animanga.dev"
+  },
+  {
+   "username": "javier",
+   "fullName": "Javier López",
+   "email": "javier@animanga.dev"
+  },
+  {
+   "username": "sofia",
+   "fullName": "Sofía Navarro",
+   "email": "sofia@animanga.dev"
+  },
+  {
+   "username": "pablo",
+   "fullName": "Pablo Ortega",
+   "email": "pablo@animanga.dev"
+  },
+  {
+   "username": "elena",
+   "fullName": "Elena Torres",
+   "email": "elena@animanga.dev"
+  }
+ ],
+ "reviews": [
+  {
+   "user": "laura",
+   "series": "Jujutsu Kaisen",
+   "rating": 5,
+   "comment": "Los combates están dibujados de maravilla y Gojo es el mejor personaje en años."
+  },
+  {
+   "user": "carlos",
+   "series": "Jujutsu Kaisen",
+   "rating": 4,
+   "comment": "Empieza fuerte y no baja el ritmo. La edición de Norma está muy bien."
+  },
+  {
+   "user": "marta",
+   "series": "Jujutsu Kaisen",
+   "rating": 5,
+   "comment": null
+  },
+  {
+   "user": "javier",
+   "series": "Jujutsu Kaisen 0",
+   "rating": 4,
+   "comment": "Imprescindible para entender a Yuta antes de la serie principal."
+  },
+  {
+   "user": "sofia",
+   "series": "One Piece",
+   "rating": 5,
+   "comment": "Una aventura que no envejece. Luffy y su tripulación son pura alegría."
+  },
+  {
+   "user": "pablo",
+   "series": "One Piece",
+   "rating": 5,
+   "comment": "Empecé por curiosidad y ya voy por el tomo 4. Engancha muchísimo."
+  },
+  {
+   "user": "elena",
+   "series": "One Piece",
+   "rating": 4,
+   "comment": "El humor es muy de su época pero el worldbuilding es increíble."
+  },
+  {
+   "user": "laura",
+   "series": "Naruto",
+   "rating": 4,
+   "comment": "Un clásico. Los primeros tomos son puro shōnen de manual."
+  },
+  {
+   "user": "carlos",
+   "series": "Naruto",
+   "rating": 3,
+   "comment": "Me gustó, aunque al principio va un poco lento."
+  },
+  {
+   "user": "marta",
+   "series": "Ataque a los Titanes",
+   "rating": 5,
+   "comment": "Oscuro, tenso y con giros que no ves venir. Una obra maestra."
+  },
+  {
+   "user": "javier",
+   "series": "Ataque a los Titanes",
+   "rating": 5,
+   "comment": "El dibujo mejora muchísimo con los tomos. La historia lo compensa todo."
+  },
+  {
+   "user": "sofia",
+   "series": "Guardianes de la Noche",
+   "rating": 5,
+   "comment": "Tanjiro es entrañable y las peleas son espectaculares."
+  },
+  {
+   "user": "pablo",
+   "series": "Guardianes de la Noche",
+   "rating": 4,
+   "comment": null
+  },
+  {
+   "user": "elena",
+   "series": "Chainsaw Man",
+   "rating": 5,
+   "comment": "Caótico, gamberro y sorprendentemente emotivo. Fujimoto es un genio."
+  },
+  {
+   "user": "demo",
+   "series": "Chainsaw Man",
+   "rating": 4,
+   "comment": "No es para todos los públicos, pero qué manera de contar historias."
+  },
+  {
+   "user": "laura",
+   "series": "Spy×Family",
+   "rating": 5,
+   "comment": "Anya es lo más adorable que he leído nunca. Muy divertido."
+  },
+  {
+   "user": "marta",
+   "series": "Spy×Family",
+   "rating": 4,
+   "comment": "Comedia familiar con acción. Perfecto para desconectar."
+  }
+ ]
+}

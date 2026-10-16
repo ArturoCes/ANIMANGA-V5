@@ -1,0 +1,23 @@
+package com.salesianos.triana.animanga.common;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import java.time.Instant;
+import java.util.List;
+
+/** Formato único de error que devuelve la API. */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public record ApiError(
+        int status,
+        String error,
+        String message,
+        String path,
+        Instant timestamp,
+        List<FieldError> fieldErrors
+) {
+    public record FieldError(String field, String message) {}
+
+    public static ApiError of(int status, String error, String message, String path) {
+        return new ApiError(status, error, message, path, Instant.now(), List.of());
+    }
+}

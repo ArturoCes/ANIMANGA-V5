@@ -7,7 +7,7 @@ import { ImagePickerComponent } from '../../shared/image-picker.component';
 import { CatalogService } from '../../core/catalog.service';
 import { NotifyService } from '../../core/notify.service';
 import { imageUrl } from '../../core/api';
-import { Category, Manga, MangaPayload } from '../../core/models';
+import { Category, MangaDetail, MangaPayload } from '../../core/models';
 
 @Component({
   standalone: true,
@@ -17,11 +17,11 @@ import { Category, Manga, MangaPayload } from '../../core/models';
     <form [formGroup]="form" (ngSubmit)="save()">
       <mat-dialog-content class="form-grid">
         <app-image-picker class="full" label="Portada" [required]="!manga"
-                          [current]="manga ? cover(manga.posterPath) : null" (picked)="file = $event" />
+                          [current]="manga ? cover(manga.coverImage) : null" (picked)="file = $event" />
 
         <mat-form-field appearance="outline" class="full">
           <mat-label>Título</mat-label>
-          <input matInput formControlName="name" />
+          <input matInput formControlName="title" />
           <mat-error>El título es obligatorio</mat-error>
         </mat-form-field>
 
@@ -32,7 +32,10 @@ import { Category, Manga, MangaPayload } from '../../core/models';
 
         <mat-form-field appearance="outline">
           <mat-label>Editorial</mat-label>
-          <input matInput formControlName="publisher" />
+          <input matInput formControlName="publisher" [matAutocomplete]="pubs" />
+          <mat-autocomplete #pubs="matAutocomplete">
+            <mat-option *ngFor="let p of publishers" [value]="p">{{ p }}</mat-option>
+          </mat-autocomplete>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -42,7 +45,7 @@ import { Category, Manga, MangaPayload } from '../../core/models';
 
         <mat-form-field appearance="outline">
           <mat-label>Categorías</mat-label>
-          <mat-select formControlName="categories" multiple>
+          <mat-select formControlName="categoryIds" multiple>
             <mat-option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</mat-option>
           </mat-select>
           <mat-error>Elige al menos una categoría</mat-error>
@@ -50,7 +53,7 @@ import { Category, Manga, MangaPayload } from '../../core/models';
 
         <mat-form-field appearance="outline" class="full">
           <mat-label>Sinopsis</mat-label>
-          <textarea matInput rows="4" formControlName="description"></textarea>
+          <textarea matInput rows="4" formControlName="synopsis"></textarea>
           <mat-error>La sinopsis es obligatoria</mat-error>
         </mat-form-field>
       </mat-dialog-content>
@@ -70,34 +73,33 @@ export class MangaFormDialog implements OnInit {
   private readonly ref = inject(MatDialogRef<MangaFormDialog>);
 
   readonly form = inject(FormBuilder).nonNullable.group({
-    name: ['', Validators.required],
+    title: ['', Validators.required],
     author: [''],
     publisher: [''],
     releaseDate: [''],
-    categories: [[] as string[], Validators.required],
-    description: ['', Validators.required],
+    categoryIds: [[] as string[], Validators.required],
+    synopsis: ['', Validators.required],
   });
 
   categories: Category[] = [];
+  publishers: string[] = [];
   file: File | null = null;
   saving = false;
   readonly cover = imageUrl;
 
-  constructor(@Inject(MAT_DIALOG_DATA) public manga: Manga | null) {}
+  constructor(@Inject(MAT_DIALOG_DATA) public manga: MangaDetail | null) {}
 
   ngOnInit(): void {
-    this.catalog.categories().subscribe({
-      next: (res) => (this.categories = res.content),
-      error: (err) => this.notify.error(err),
-    });
+    this.catalog.categories().subscribe({ next: (c) => (this.categories = c), error: (e) => this.notify.error(e) });
+    this.catalog.publishers().subscribe((p) => (this.publishers = p));
     if (this.manga) {
       this.form.patchValue({
-        name: this.manga.name,
+        title: this.manga.title,
         author: this.manga.author ?? '',
         publisher: this.manga.publisher ?? '',
         releaseDate: this.manga.releaseDate ?? '',
-        categories: this.manga.categories.map((c) => c.id),
-        description: this.manga.description,
+        categoryIds: this.manga.categories.map((c) => c.id),
+        synopsis: this.manga.synopsis,
       });
     }
   }
@@ -113,16 +115,16 @@ export class MangaFormDialog implements OnInit {
     }
     const v = this.form.getRawValue();
     const payload: MangaPayload = {
-      name: v.name.trim(),
+      title: v.title.trim(),
       author: v.author.trim(),
       publisher: v.publisher.trim(),
       releaseDate: v.releaseDate || null,
-      description: v.description.trim(),
-      categories: v.categories.map((id) => ({ id })),
+      synopsis: v.synopsis.trim(),
+      categoryIds: v.categoryIds,
     };
 
     this.saving = true;
-    const request: Observable<Manga> = this.manga
+    const request: Observable<MangaDetail> = this.manga
       ? this.catalog.updateManga(this.manga.id, payload).pipe(
           switchMap((m) => (this.file ? this.catalog.updateMangaCover(m.id, this.file) : of(m)))
         )

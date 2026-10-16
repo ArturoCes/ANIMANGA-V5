@@ -1,50 +1,70 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, finalize, map, shareReplay, tap } from 'rxjs';
 import { API } from './api';
-import { LoginResponse, User } from './models';
+import { AuthResponse, User } from './models';
 
-const TOKEN_KEY = 'animanga.token';
+const ACCESS_KEY = 'animanga.access';
+const REFRESH_KEY = 'animanga.refresh';
 const USER_KEY = 'animanga.user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly _user = signal<User | null>(this.readUser());
+  private refreshing$: Observable<string> | null = null;
 
   readonly user = this._user.asReadonly();
   readonly isAdmin = computed(() => this._user()?.role === 'ADMIN');
 
   constructor(private http: HttpClient, private router: Router) {}
 
-  get token(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+  get accessToken(): string | null {
+    return localStorage.getItem(ACCESS_KEY);
   }
 
-  login(username: string, password: string): Observable<LoginResponse> {
+  login(username: string, password: string): Observable<User> {
     return this.http
-      .post<LoginResponse>(`${API}auth/login`, { username, password })
-      .pipe(
-        tap((res) => {
-          localStorage.setItem(TOKEN_KEY, res.token);
-          this.setUser(res);
-        })
-      );
+      .post<AuthResponse>(`${API}auth/login`, { username, password })
+      .pipe(tap((res) => this.store(res)), map((res) => res.user));
   }
 
-  /** Actualiza los datos del usuario en sesión (p. ej. tras editar el perfil). */
+  /**
+   * Renueva la sesión con el refresh token. Si varias peticiones caducan a la vez,
+   * todas esperan a la misma renovación.
+   */
+  refresh(): Observable<string> {
+    if (!this.refreshing$) {
+      const refreshToken = localStorage.getItem(REFRESH_KEY) ?? '';
+      this.refreshing$ = this.http.post<AuthResponse>(`${API}auth/refresh`, { refreshToken }).pipe(
+        tap((res) => this.store(res)),
+        map((res) => res.accessToken),
+        finalize(() => (this.refreshing$ = null)),
+        shareReplay(1)
+      );
+    }
+    return this.refreshing$;
+  }
+
   setUser(user: User): void {
-    const { id, username, fullName, email, image, role, idCart, createdAt } = user;
-    const clean: User = { id, username, fullName, email, image, role, idCart, createdAt };
-    localStorage.setItem(USER_KEY, JSON.stringify(clean));
-    this._user.set(clean);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    this._user.set(user);
   }
 
   logout(redirect = true): void {
-    localStorage.removeItem(TOKEN_KEY);
+    const refreshToken = localStorage.getItem(REFRESH_KEY);
+    if (refreshToken) this.http.post(`${API}auth/logout`, { refreshToken }).subscribe({ error: () => {} });
+    localStorage.removeItem(ACCESS_KEY);
+    localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem(USER_KEY);
     this._user.set(null);
     if (redirect) this.router.navigate(['/login']);
+  }
+
+  private store(res: AuthResponse): void {
+    localStorage.setItem(ACCESS_KEY, res.accessToken);
+    localStorage.setItem(REFRESH_KEY, res.refreshToken);
+    this.setUser(res.user);
   }
 
   private readUser(): User | null {
