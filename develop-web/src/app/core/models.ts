@@ -28,6 +28,8 @@ export interface Volume {
   isbn: string | null;
   stock: number;
   coverImage: string;
+  /** Páginas de muestra ("Leer avance"), en orden. */
+  previewPages: string[];
 }
 
 export interface MangaCharacter {

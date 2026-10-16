@@ -9,6 +9,7 @@ import '../../state/auth_cubit.dart';
 import '../../state/cart_cubit.dart';
 import '../../state/favorites_cubit.dart';
 import '../widgets/common.dart';
+import 'preview_reader_page.dart';
 
 void openMangaDetail(BuildContext context, String mangaId) =>
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => MangaDetailPage(mangaId: mangaId)));
@@ -98,6 +99,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
     final theme = Theme.of(context);
     final favorite = context.select((FavoritesCubit c) => c.state.contains(manga.id));
     final wide = MediaQuery.sizeOf(context).width >= 760;
+    final preview = manga.volumes.where((v) => v.hasPreview).firstOrNull;
 
     final header = Flex(
       direction: wide ? Axis.horizontal : Axis.vertical,
@@ -152,6 +154,15 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
               ]),
               const SizedBox(height: 16),
               Text(manga.synopsis, style: theme.textTheme.bodyLarge?.copyWith(height: 1.55)),
+              if (preview != null) ...[
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 46)),
+                  onPressed: () => openPreview(context, preview),
+                  icon: const Icon(Icons.auto_stories_outlined),
+                  label: Text('Leer avance · Tomo ${preview.number}'),
+                ),
+              ],
             ],
           ),
         ),
@@ -288,12 +299,24 @@ class _VolumeTile extends StatelessWidget {
                       style: theme.textTheme.titleMedium
                           ?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 4),
-                  Row(children: [
+                  Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                     StockBadge(volume.stock),
-                    if (inCart > 0) ...[
-                      const SizedBox(width: 8),
-                      Flexible(child: Text('$inCart en el carrito', style: theme.textTheme.bodySmall)),
-                    ],
+                    if (volume.hasPreview)
+                      InkWell(
+                        onTap: () => openPreview(context, volume),
+                        borderRadius: BorderRadius.circular(99),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Icon(Icons.auto_stories_outlined, size: 15, color: theme.colorScheme.primary),
+                            const SizedBox(width: 4),
+                            Text('Leer avance',
+                                style: theme.textTheme.bodySmall
+                                    ?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w600)),
+                          ]),
+                        ),
+                      ),
+                    if (inCart > 0) Text('$inCart en el carrito', style: theme.textTheme.bodySmall),
                   ]),
                 ],
               ),

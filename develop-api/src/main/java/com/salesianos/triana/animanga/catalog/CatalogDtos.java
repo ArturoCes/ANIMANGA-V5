@@ -21,7 +21,8 @@ public final class CatalogDtos {
             @Size(max = 500) String description) {}
 
     public record VolumeDto(UUID id, UUID mangaId, String mangaTitle, int number, String title,
-                            BigDecimal price, String isbn, int stock, String coverImage) {}
+                            BigDecimal price, String isbn, int stock, String coverImage,
+                            List<String> previewPages) {}
 
     public record CharacterDto(UUID id, String name, Integer age, String description, String image) {}
 

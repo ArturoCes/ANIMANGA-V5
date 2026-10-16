@@ -9,6 +9,7 @@ import { MangaCharacter, MangaDetail, Review, Volume } from '../../core/models';
 import { MangaFormDialog } from '../mangas/manga-form.dialog';
 import { VolumeFormDialog } from './volumen-form.dialog';
 import { CharacterFormDialog } from './character-form.dialog';
+import { PreviewPagesDialog } from './preview-pages.dialog';
 
 @Component({
   standalone: true,
@@ -63,8 +64,8 @@ import { CharacterFormDialog } from './character-form.dialog';
               <td mat-cell *matCellDef="let v"><strong>{{ v.title }}</strong><div class="muted small">Tomo {{ v.number }}</div></td>
             </ng-container>
             <ng-container matColumnDef="isbn">
-              <th mat-header-cell *matHeaderCellDef>ISBN</th>
-              <td mat-cell *matCellDef="let v" class="mono">{{ v.isbn || '—' }}</td>
+              <th mat-header-cell *matHeaderCellDef class="hide-md">ISBN</th>
+              <td mat-cell *matCellDef="let v" class="mono hide-md">{{ v.isbn || '—' }}</td>
             </ng-container>
             <ng-container matColumnDef="price">
               <th mat-header-cell *matHeaderCellDef>Precio</th>
@@ -75,6 +76,15 @@ import { CharacterFormDialog } from './character-form.dialog';
               <td mat-cell *matCellDef="let v">
                 <span class="badge" [class.badge-danger]="v.stock === 0" [class.badge-warn]="v.stock > 0 && v.stock <= 5"
                       [class.badge-ok]="v.stock > 5">{{ v.stock === 0 ? 'Agotado' : v.stock + ' uds.' }}</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="preview">
+              <th mat-header-cell *matHeaderCellDef class="hide-sm">Avance</th>
+              <td mat-cell *matCellDef="let v" class="hide-sm">
+                <button mat-stroked-button class="preview-btn" (click)="openPreview(v)">
+                  <mat-icon>auto_stories</mat-icon>
+                  {{ v.previewPages.length ? v.previewPages.length + ' págs.' : 'Añadir' }}
+                </button>
               </td>
             </ng-container>
             <ng-container matColumnDef="actions">
@@ -138,7 +148,8 @@ import { CharacterFormDialog } from './character-form.dialog';
     </ng-container>
   `,
   styles: [
-    `.back { margin: -8px 0 12px -8px; }
+    `.preview-btn { height: 34px; padding: 0 12px; white-space: nowrap; }
+     .back { margin: -8px 0 12px -8px; }
      .hero { display: flex; gap: 28px; }
      .cover { width: 200px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 12px; box-shadow: var(--shadow-lg); flex-shrink: 0; }
      .info { flex: 1; min-width: 0; }
@@ -180,7 +191,7 @@ export class MangaDetailComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotifyService);
 
-  readonly volumeColumns = ['cover', 'title', 'isbn', 'price', 'stock', 'actions'];
+  readonly volumeColumns = ['cover', 'title', 'isbn', 'price', 'stock', 'preview', 'actions'];
   readonly avatar = avatarUrl;
   manga: MangaDetail | null = null;
   reviews: Review[] = [];
@@ -232,6 +243,13 @@ export class MangaDetailComponent implements OnInit {
       .open(VolumeFormDialog, { data: { manga: this.manga!, volume: volume ?? null }, width: '560px', maxWidth: '95vw' })
       .afterClosed()
       .subscribe((saved) => saved && this.load());
+  }
+
+  openPreview(volume: Volume): void {
+    this.dialog
+      .open(PreviewPagesDialog, { data: volume, width: '760px', maxWidth: '95vw', autoFocus: false })
+      .afterClosed()
+      .subscribe((changed) => changed && this.load());
   }
 
   removeVolume(v: Volume): void {

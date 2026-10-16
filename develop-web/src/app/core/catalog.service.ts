@@ -83,6 +83,20 @@ export class CatalogService {
     return this.http.put<Volume>(`${API}volumes/${id}/cover`, filePart('cover', cover));
   }
 
+  addPreviewPages(id: string, pages: File[]): Observable<Volume> {
+    const form = new FormData();
+    pages.forEach((p) => form.append('pages', p));
+    return this.http.post<Volume>(`${API}volumes/${id}/preview`, form);
+  }
+
+  movePreviewPage(id: string, from: number, to: number): Observable<Volume> {
+    return this.http.put<Volume>(`${API}volumes/${id}/preview/${from}/position/${to}`, null);
+  }
+
+  deletePreviewPage(id: string, index: number): Observable<Volume> {
+    return this.http.delete<Volume>(`${API}volumes/${id}/preview/${index}`);
+  }
+
   deleteVolume(id: string): Observable<void> {
     return this.http.delete<void>(`${API}volumes/${id}`);
   }

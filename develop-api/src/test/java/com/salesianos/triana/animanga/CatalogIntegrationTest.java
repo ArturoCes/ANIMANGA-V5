@@ -122,6 +122,40 @@ class CatalogIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    void elPrimerVolumenTraeAvanceDeMuestra() throws Exception {
+        getJson("/mangas/" + mangaId("Naruto"), null)
+                .andExpect(jsonPath("$.volumes[?(@.number == 1)].previewPages[0]").value(contains("nar-01-p01.jpg")))
+                .andExpect(jsonPath("$.volumes[?(@.number == 1)].previewPages.length()").value(contains(6)));
+        mvc.perform(get("/images/nar-01-p02.jpg")).andExpect(status().isOk());
+    }
+
+    @Test
+    void elAdminGestionaLasPaginasDelAvance() throws Exception {
+        String admin = adminToken();
+        String volume = volumeId("Naruto", 2);
+
+        perform(multipart("/volumes/" + volume + "/preview").file(image("pages")).file(image("pages")), newCustomer())
+                .andExpect(status().isForbidden());
+
+        String body = perform(multipart("/volumes/" + volume + "/preview")
+                .file(image("pages")).file(image("pages")).file(image("pages")), admin)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.previewPages", hasSize(3)))
+                .andReturn().getResponse().getContentAsString();
+        List<String> pages = JsonPath.read(body, "$.previewPages");
+
+        perform(put("/volumes/" + volume + "/preview/2/position/0"), admin)
+                .andExpect(jsonPath("$.previewPages[0]").value(pages.get(2)))
+                .andExpect(jsonPath("$.previewPages[1]").value(pages.get(0)));
+
+        perform(delete("/volumes/" + volume + "/preview/0"), admin)
+                .andExpect(jsonPath("$.previewPages", hasSize(2)));
+        mvc.perform(get("/images/" + pages.get(2))).andExpect(status().isNotFound());
+
+        perform(delete("/volumes/" + volume + "/preview/9"), admin).andExpect(status().isNotFound());
+    }
+
+    @Test
     void rechazaFicherosQueNoSonImagenes() throws Exception {
         String admin = adminToken();
         perform(multipart("/mangas/" + mangaId("Naruto") + "/cover").file(

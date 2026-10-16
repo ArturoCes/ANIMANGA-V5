@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Carga los datos de demostración si la base de datos está vacía: categorías, 8 series con
@@ -116,7 +117,8 @@ public class DataSeeder implements ApplicationRunner {
                     .build();
             for (SeedVolume v : s.volumes()) {
                 manga.addVolume(Volume.builder().number(v.number()).title(s.title() + " " + v.number())
-                        .price(v.price()).stock(v.stock()).isbn(v.isbn()).coverImage(v.cover()).build());
+                        .price(v.price()).stock(v.stock()).isbn(v.isbn()).coverImage(v.cover())
+                        .previewPages(previewPagesFor(v.cover())).build());
             }
             for (SeedCharacter c : s.characters()) {
                 manga.addCharacter(MangaCharacter.builder().name(c.name()).age(c.age())
@@ -193,10 +195,24 @@ public class DataSeeder implements ApplicationRunner {
         }
     }
 
-    /** Copia las portadas de ejemplo al almacén de imágenes si aún no están. */
+    /** Páginas de avance de ejemplo de un volumen: seed/previews/{portada}-pNN.jpg */
+    private List<String> previewPagesFor(String cover) throws IOException {
+        if (cover == null) return new ArrayList<>();
+        String base = cover.replaceFirst("\\.[^.]+$", "");
+        var resolver = new org.springframework.core.io.support.PathMatchingResourcePatternResolver();
+        return Arrays.stream(resolver.getResources("classpath:seed/previews/" + base + "-p*.jpg"))
+                .map(org.springframework.core.io.Resource::getFilename)
+                .filter(Objects::nonNull)
+                .sorted()
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    /** Copia las imágenes de ejemplo (portadas y páginas de avance) al almacén si aún no están. */
     private void copyImages() throws IOException {
         var resolver = new org.springframework.core.io.support.PathMatchingResourcePatternResolver();
-        for (var resource : resolver.getResources("classpath:seed/covers/*")) {
+        var resources = new ArrayList<>(List.of(resolver.getResources("classpath:seed/covers/*")));
+        resources.addAll(List.of(resolver.getResources("classpath:seed/previews/*")));
+        for (var resource : resources) {
             String name = resource.getFilename();
             if (name == null || storage.exists(name)) continue;
             try (InputStream in = resource.getInputStream()) {

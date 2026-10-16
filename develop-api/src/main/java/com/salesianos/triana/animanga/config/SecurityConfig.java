@@ -56,7 +56,7 @@ public class SecurityConfig {
                         // Administración
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/mangas/*/reviews").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/mangas/**", "/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/mangas/**", "/volumes/**", "/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/mangas/**", "/volumes/**", "/characters/**", "/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/mangas/**", "/volumes/**", "/characters/**", "/categories/**").hasRole("ADMIN")
                         // Resto (carrito, pedidos, perfil, favoritos, reseñas propias): sesión iniciada

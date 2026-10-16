@@ -36,6 +36,8 @@ public class CatalogService {
     private final StorageService storage;
     private final MangaStatsUpdater stats;
 
+    static final int MAX_PREVIEW_PAGES = 20;
+
     // =================================================================== Consulta
 
     @Transactional(readOnly = true)
@@ -142,6 +144,7 @@ public class CatalogService {
             orders.detachVolume(v.getId());
             cartItems.deleteByVolume(v);
             storage.delete(v.getCoverImage());
+            v.getPreviewPages().forEach(storage::delete);
         }
         manga.getCharacters().forEach(c -> storage.delete(c.getImage()));
         reviews.deleteByManga(manga);
@@ -205,7 +208,37 @@ public class CatalogService {
         cartItems.deleteByVolume(volume);
         manga.getVolumes().remove(volume);
         storage.delete(volume.getCoverImage());
+        volume.getPreviewPages().forEach(storage::delete);
         stats.refreshStock(manga);
+    }
+
+    /** Añade páginas al final del avance. Se validan todas antes de guardar ninguna. */
+    @Transactional
+    public VolumeDto addPreviewPages(UUID id, List<MultipartFile> pages) {
+        Volume volume = loadVolume(id);
+        if (pages == null || pages.isEmpty()) throw ApiException.badRequest("Selecciona al menos una página");
+        if (volume.getPreviewPages().size() + pages.size() > MAX_PREVIEW_PAGES) {
+            throw ApiException.badRequest("El avance admite como máximo " + MAX_PREVIEW_PAGES + " páginas");
+        }
+        for (MultipartFile page : pages) volume.getPreviewPages().add(storage.store(page));
+        return CatalogMapper.volume(volume);
+    }
+
+    @Transactional
+    public VolumeDto movePreviewPage(UUID id, int from, int to) {
+        Volume volume = loadVolume(id);
+        List<String> pages = volume.getPreviewPages();
+        if (from < 0 || from >= pages.size() || to < 0 || to >= pages.size()) throw ApiException.badRequest("Página no válida");
+        pages.add(to, pages.remove(from));
+        return CatalogMapper.volume(volume);
+    }
+
+    @Transactional
+    public VolumeDto deletePreviewPage(UUID id, int index) {
+        Volume volume = loadVolume(id);
+        if (index < 0 || index >= volume.getPreviewPages().size()) throw ApiException.notFound("Página");
+        storage.delete(volume.getPreviewPages().remove(index));
+        return CatalogMapper.volume(volume);
     }
 
     private void apply(Volume volume, Manga manga, VolumeRequest req) {

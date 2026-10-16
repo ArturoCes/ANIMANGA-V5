@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "Administración · Volúmenes y personajes")
@@ -29,6 +30,24 @@ public class VolumeController {
     @PutMapping(value = "/volumes/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public VolumeDto cover(@PathVariable UUID id, @RequestPart("cover") MultipartFile cover) {
         return catalog.updateVolumeCover(id, cover);
+    }
+
+    @Operation(summary = "Añadir páginas al avance de un volumen", description = "Máximo 20 páginas por volumen.")
+    @PostMapping(value = "/volumes/{id}/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public VolumeDto addPreview(@PathVariable UUID id, @RequestPart("pages") List<MultipartFile> pages) {
+        return catalog.addPreviewPages(id, pages);
+    }
+
+    @Operation(summary = "Mover una página del avance")
+    @PutMapping("/volumes/{id}/preview/{index}/position/{to}")
+    public VolumeDto movePreview(@PathVariable UUID id, @PathVariable int index, @PathVariable int to) {
+        return catalog.movePreviewPage(id, index, to);
+    }
+
+    @Operation(summary = "Quitar una página del avance")
+    @DeleteMapping("/volumes/{id}/preview/{index}")
+    public VolumeDto deletePreview(@PathVariable UUID id, @PathVariable int index) {
+        return catalog.deletePreviewPage(id, index);
     }
 
     @Operation(summary = "Eliminar un volumen")

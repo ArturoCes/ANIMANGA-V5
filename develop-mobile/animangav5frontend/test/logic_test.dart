@@ -26,6 +26,13 @@ void main() {
   });
 
   group('Modelos', () {
+    test('el volumen lee las páginas del avance', () {
+      final v = Volume.fromJson({'id': 'v1', 'previewPages': ['a-p01.jpg', 'a-p02.jpg']});
+      expect(v.hasPreview, isTrue);
+      expect(v.previewPages, ['a-p01.jpg', 'a-p02.jpg']);
+      expect(Volume.fromJson({'id': 'v2'}).hasPreview, isFalse);
+    });
+
     test('MangaDetail lee volúmenes, personajes y valoración', () {
       final manga = MangaDetail.fromJson({
         'id': 'm1',

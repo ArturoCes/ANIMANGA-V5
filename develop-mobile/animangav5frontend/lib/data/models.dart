@@ -44,6 +44,7 @@ class Volume {
     required this.isbn,
     required this.stock,
     required this.coverImage,
+    this.previewPages = const [],
   });
 
   factory Volume.fromJson(Map<String, dynamic> json) => Volume(
@@ -56,6 +57,7 @@ class Volume {
         isbn: json['isbn'] as String?,
         stock: json['stock'] as int? ?? 0,
         coverImage: json['coverImage'] as String? ?? '',
+        previewPages: (json['previewPages'] as List? ?? const []).cast<String>(),
       );
 
   final String id;
@@ -68,7 +70,11 @@ class Volume {
   final int stock;
   final String coverImage;
 
+  /// Páginas de muestra para "Leer avance", en orden.
+  final List<String> previewPages;
+
   bool get soldOut => stock <= 0;
+  bool get hasPreview => previewPages.isNotEmpty;
 }
 
 class MangaCharacter {

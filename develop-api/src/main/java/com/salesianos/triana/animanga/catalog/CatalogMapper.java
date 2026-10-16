@@ -17,7 +17,7 @@ public final class CatalogMapper {
     public static VolumeDto volume(Volume v) {
         Manga m = v.getManga();
         return new VolumeDto(v.getId(), m.getId(), m.getTitle(), v.getNumber(), v.getTitle(), v.getPrice(),
-                v.getIsbn(), v.getStock(), v.getCoverImage());
+                v.getIsbn(), v.getStock(), v.getCoverImage(), List.copyOf(v.getPreviewPages()));
     }
 
     public static CharacterDto character(MangaCharacter c) {
