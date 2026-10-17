@@ -1,0 +1,22 @@
+# Netlify: panel de administración (Angular).
+# Este fichero se usa cuando el proyecto de Netlify apunta a la raíz del repositorio.
+# Si en Netlify se pone "Base directory = develop-web", se usa develop-web/netlify.toml (mismo contenido).
+[build]
+  base = "develop-web"
+  command = "npm ci && npm run build"
+  publish = "dist/develop-web"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# La API se sirve a través de Netlify para evitar CORS.
+[[redirects]]
+  from = "/api/*"
+  to = "https://animanga-api-x7ot.onrender.com/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
