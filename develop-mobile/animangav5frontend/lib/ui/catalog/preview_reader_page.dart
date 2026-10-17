@@ -44,7 +44,7 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
   static const _thumbGap = 8.0;
   static const _pageAspect = 2 / 3;
 
-  late final AnimationController _turn = AnimationController(vsync: this, duration: const Duration(milliseconds: 520));
+  late final AnimationController _turn = AnimationController(vsync: this, duration: const Duration(milliseconds: 340));
   final _thumbs = ScrollController();
   final _zoom = TransformationController();
   final _focus = FocusNode();
@@ -55,7 +55,10 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
   bool _chrome = true;
   bool _hint = false; // ayuda de "desliza para pasar página" la primera vez
   bool _zoomed = false;
-  TapDownDetails? _doubleTap;
+  Offset? _zoomPoint;
+
+  /// Último toque en el centro, para reconocer el doble toque sin retrasar los toques en los bordes.
+  DateTime? _lastCenterTap;
 
   int _view = 0;
 
@@ -74,7 +77,6 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
       final zoomed = _zoom.value.getMaxScaleOnAxis() > 1.01;
       if (zoomed != _zoomed) setState(() => _zoomed = zoomed);
     });
-    _turn.addListener(() => setState(() {}));
     SharedPreferences.getInstance().then((prefs) {
       if (!mounted) return;
       final firstTime = !(prefs.getBool(_hintKey) ?? false);
@@ -126,14 +128,36 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
   void _next(List<_View> views) => _animateTurn(views, forward: true);
   void _previous(List<_View> views) => _animateTurn(views, forward: false);
 
-  Future<void> _animateTurn(List<_View> views, {required bool forward}) async {
-    if (_from != null || _zoomed) return;
-    if (forward && _view >= views.length - 1) return;
-    if (!forward && _view == 0) return;
+  /// Sentido del paso de página animado en curso (null si no hay ninguno o se está arrastrando).
+  bool? _animatingForward;
+
+  /// Pulsaciones hechas mientras la hoja aún giraba: se encadenan en vez de perderse.
+  int _queued = 0;
+
+  Future<void> _animateTurn(List<_View> views, {required bool forward, bool chained = false}) async {
+    if (_zoomed || _dragging) return;
+    if (_from != null) {
+      if (_animatingForward == forward && _queued < 4) _queued++;
+      return;
+    }
+    if ((forward && _view >= views.length - 1) || (!forward && _view == 0)) {
+      _queued = 0; // no quedan páginas en ese sentido
+      return;
+    }
     setState(() => _from = forward ? _view : _view - 1);
+    _animatingForward = forward;
     _turn.value = forward ? 0 : 1;
-    await (forward ? _turn.animateTo(1, curve: Curves.easeInOut) : _turn.animateTo(0, curve: Curves.easeInOut));
+    // Las hojas encadenadas pasan más deprisa, como al hojear
+    final duration = chained ? const Duration(milliseconds: 200) : null;
+    await (forward
+        ? _turn.animateTo(1, curve: chained ? Curves.easeOut : Curves.easeInOutCubic, duration: duration)
+        : _turn.animateTo(0, curve: chained ? Curves.easeOut : Curves.easeInOutCubic, duration: duration));
+    _animatingForward = null;
     _finishTurn(views, completed: true, forward: forward);
+    if (_queued > 0 && mounted) {
+      _queued--;
+      _animateTurn(views, forward: forward, chained: true);
+    }
   }
 
   void _finishTurn(List<_View> views, {required bool completed, required bool forward}) {
@@ -178,6 +202,7 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
   void _onDragStart(ScaleStartDetails d) {
     _dragging = false;
     _pageGesture = !_zoomed && _from == null && d.pointerCount == 1;
+    _focus.requestFocus();
   }
 
   void _onDragUpdate(List<_View> views, ScaleUpdateDetails d) {
@@ -205,7 +230,7 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
     final startedForward = from == _view;
     final velocity = (_rtl ? d.velocity.pixelsPerSecond.dx : -d.velocity.pixelsPerSecond.dx) / _turnWidth;
     final toEnd = velocity.abs() > 1.2 ? velocity > 0 : _turn.value > 0.5;
-    await _turn.animateTo(toEnd ? 1 : 0, curve: Curves.easeOut, duration: const Duration(milliseconds: 260));
+    await _turn.animateTo(toEnd ? 1 : 0, curve: Curves.easeOutCubic, duration: const Duration(milliseconds: 180));
     // Hacia delante se completa al llegar a 1; hacia atrás, al llegar a 0
     final completed = startedForward ? toEnd : !toEnd;
     _finishTurn(views, completed: completed, forward: startedForward);
@@ -218,7 +243,7 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
     }
     const scale = 2.5;
     final size = context.size!;
-    final p = _doubleTap?.localPosition ?? Offset(size.width / 2, size.height / 2);
+    final p = _zoomPoint ?? Offset(size.width / 2, size.height / 2);
     _zoom.value = Matrix4.identity()
       ..translateByDouble(-p.dx * (scale - 1), -p.dy * (scale - 1), 0, 1)
       ..scaleByDouble(scale, scale, 1, 1);
@@ -340,7 +365,7 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
                         onZoom: onEnd ? null : _toggleZoom,
                       ),
                     ),
-                    _Slide(visible: _chrome, fromTop: false, child: _thumbStrip(views)),
+                    _Slide(visible: _chrome, fromTop: false, child: RepaintBoundary(child: _thumbStrip(views))),
                     if (_hint) _Hint(rtl: _rtl, onClose: () => setState(() => _hint = false)),
                   ],
                 ),
@@ -393,27 +418,37 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: const [
-                  BoxShadow(color: Color(0xAA000000), blurRadius: 42, offset: Offset(0, 22)),
-                  BoxShadow(color: Color(0x66000000), blurRadius: 10, offset: Offset(0, 4)),
+                  BoxShadow(color: Color(0x99000000), blurRadius: 26, offset: Offset(0, 16)),
+                  BoxShadow(color: Color(0x55000000), blurRadius: 8, offset: Offset(0, 4)),
                 ],
               ),
             ),
           ),
-          ..._pageEdges(views, page, spread, hasLeft: hasLeft, hasRight: hasRight),
+          // Lo que no cambia durante el giro va en su propia capa para no redibujarlo en cada fotograma
+          RepaintBoundary(
+            child: SizedBox(
+              width: bookW,
+              height: pageH,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: _pageEdges(views, page, spread, hasLeft: hasLeft, hasRight: hasRight),
+              ),
+            ),
+          ),
           SizedBox(
             width: bookW,
             height: pageH,
-            child: _from == null ? _static(views[_view], page, spread) : _turning(views, page, spread),
+            // Durante el giro solo se redibuja el libro, no toda la pantalla
+            child: _from == null
+                ? _static(views[_view], page, spread)
+                : AnimatedBuilder(animation: _turn, builder: (_, __) => _turning(views, page, spread)),
           ),
         ],
       );
 
-      final turning = _from != null;
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTapUp: turning || _zoomed ? null : (d) => _onTap(views, d.localPosition.dx, c.maxWidth),
-        onDoubleTapDown: (d) => _doubleTap = d,
-        onDoubleTap: _toggleZoom,
+        onTapUp: (d) => _onTap(views, d.localPosition, c.maxWidth),
         child: InteractiveViewer(
           transformationController: _zoom,
           minScale: 1,
@@ -471,14 +506,29 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
   }
 
   /// Toque en el borde: pasa página como en los lectores de manga; en el centro, oculta los controles.
-  void _onTap(List<_View> views, double x, double width) {
-    if (x < width * 0.28) {
-      _rtl ? _next(views) : _previous(views);
-    } else if (x > width * 0.72) {
-      _rtl ? _previous(views) : _next(views);
-    } else {
-      setState(() => _chrome = !_chrome);
+  /// Los bordes pasan página al instante (también si ya se está girando una: se encadenan).
+  /// En el centro, un toque oculta los controles y dos seguidos amplían o quitan el zoom.
+  void _onTap(List<_View> views, Offset position, double width) {
+    _focus.requestFocus(); // por si el foco del teclado se había perdido
+    final x = position.dx;
+    final edge = !_zoomed && (x < width * 0.28 || x > width * 0.72);
+    if (edge) {
+      _lastCenterTap = null;
+      final left = x < width * 0.28;
+      (left == _rtl) ? _next(views) : _previous(views);
+      return;
     }
+    final now = DateTime.now();
+    final last = _lastCenterTap;
+    if (last != null && now.difference(last) < const Duration(milliseconds: 320)) {
+      _lastCenterTap = null;
+      _zoomPoint = position;
+      setState(() => _chrome = !_chrome); // deshace el cambio del primer toque
+      _toggleZoom();
+      return;
+    }
+    _lastCenterTap = now;
+    setState(() => _chrome = !_chrome);
   }
 
   /// Posición horizontal de un lado del libro (el lado que se pasa es el izquierdo en orden japonés).
@@ -576,6 +626,9 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
   /// Gira una hoja sobre el eje vertical de uno de sus bordes, con perspectiva, sombra y un brillo
   /// en el borde libre que imita el papel curvándose.
   Widget _rotating(Widget sheet, {required double angle, required bool pivotOnLeft}) {
+    // Casi de canto la hoja no se ve, y con perspectiva a 90º la transformación degenera y el navegador
+    // tarda muchísimo en dibujarla (congelaba el giro hacia atrás): en ese tramo simplemente no se pinta.
+    if (angle >= math.pi / 2 - 0.04) return const SizedBox.shrink();
     final a = angle.clamp(0.0, math.pi / 2);
     final lift = math.sin(a);
     final transform = Matrix4.identity()
@@ -620,7 +673,9 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
       left: Radius.circular(spineOnLeft ? 0 : 4),
       right: Radius.circular(spineOnLeft ? 4 : 0),
     );
-    return ClipRRect(
+    // Cada hoja en su propia capa: al girar solo cambia su transformación, no hay que repintar la imagen
+    return RepaintBoundary(
+        child: ClipRRect(
       borderRadius: radius,
       child: Container(
         width: size.width,
@@ -665,7 +720,7 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
                 ),
               ]),
       ),
-    );
+    ));
   }
 
   Widget _thumbStrip(List<_View> views) {
