@@ -7,9 +7,12 @@
 # (avisa por email; se reactiva con un clic en la pestaña Actions).
 name: Mantener la demo despierta
 
+# DESACTIVADO de momento: la tienda de camisetas, en el mismo espacio de Render, ya está despierta 24 h
+# y las 750 h gratis son por espacio. Para activarlo cuando la API esté en otro espacio,
+# quita el "#" de las dos líneas de "schedule".
 on:
-  schedule:
-    - cron: "*/10 5-21 * * *" # UTC: de 07:00 a 23:00 en horario de verano de España
+  # schedule:
+  #   - cron: "*/10 5-21 * * *" # UTC: de 07:00 a 23:00 en horario de verano de España
   workflow_dispatch:
 
 permissions: {}
