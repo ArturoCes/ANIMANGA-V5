@@ -11,11 +11,13 @@ import 'state/cart_cubit.dart';
 import 'state/favorites_cubit.dart';
 import 'state/theme_cubit.dart';
 import 'ui/home_shell.dart';
+import 'ui/server_wake_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es_ES');
-  runApp(AnimangaApp(api: ApiClient()));
+  // La app no arranca hasta que la API de la demo responde (en el plan gratuito puede estar dormida)
+  runApp(ServerWakeGate(child: AnimangaApp(api: ApiClient())));
 }
 
 class AnimangaApp extends StatelessWidget {
