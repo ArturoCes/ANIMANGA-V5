@@ -16,6 +16,9 @@ services:
         value: demo
       - key: JWT_SECRET
         generateValue: true
+      # Webs que pueden llamar a la API (el proxy de Netlify reenvía la cabecera Origin)
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://animangav5.netlify.app,https://animanga-tienda.netlify.app
       # URL pública de la tienda (Netlify): se usa en los enlaces de los emails
       - key: FRONTEND_URL
         sync: false
