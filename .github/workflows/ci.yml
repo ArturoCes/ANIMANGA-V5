@@ -46,7 +46,7 @@ jobs:
         working-directory: develop-mobile/animangav5frontend
     env:
       # URL de la API para la app Android (variable del repositorio API_URL)
-      API_URL: ${{ vars.API_URL || 'https://animanga-api.onrender.com' }}
+      API_URL: ${{ vars.API_URL || 'https://animanga-api-x7ot.onrender.com' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4

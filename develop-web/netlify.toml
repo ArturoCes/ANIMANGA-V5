@@ -7,10 +7,10 @@
   NODE_VERSION = "18"
 
 # La API se sirve a través de Netlify para evitar CORS.
-# Sustituye la URL por la de tu backend desplegado.
+# URL del backend desplegado en Render.
 [[redirects]]
   from = "/api/*"
-  to = "https://animanga-api.onrender.com/:splat"
+  to = "https://animanga-api-x7ot.onrender.com/:splat"
   status = 200
   force = true
 
