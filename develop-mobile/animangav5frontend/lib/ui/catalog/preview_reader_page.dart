@@ -580,7 +580,7 @@ class _PreviewReaderPageState extends State<PreviewReaderPage> with SingleTicker
     final lift = math.sin(a);
     final transform = Matrix4.identity()
       ..setEntry(3, 2, 0.0012)
-      ..rotateY(pivotOnLeft ? -a : a);
+      ..rotateY(pivotOnLeft ? a : -a); // el borde libre se acerca al lector (z negativa), como una hoja que se levanta
     final fromSpine = pivotOnLeft ? Alignment.centerLeft : Alignment.centerRight;
     final toEdge = pivotOnLeft ? Alignment.centerRight : Alignment.centerLeft;
     return Transform(
