@@ -1,0 +1,31 @@
+# Mantiene despierta la API de la demo en Render (el plan gratuito la duerme tras 15 min sin visitas
+# y la primera petición después tarda ~50 s).
+#
+# Solo de día (07:00-23:00 en España) para no gastar las 750 h/mes gratuitas del espacio de Render,
+# que se comparten con otros servicios. GitHub puede retrasar unos minutos las ejecuciones programadas.
+# Ojo: GitHub desactiva los workflows programados si el repositorio pasa 60 días sin cambios
+# (avisa por email; se reactiva con un clic en la pestaña Actions).
+name: Mantener la demo despierta
+
+on:
+  schedule:
+    - cron: "*/10 5-21 * * *" # UTC: de 07:00 a 23:00 en horario de verano de España
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Despertar la API
+        run: |
+          # Si estaba dormida, el primer intento puede tardar o fallar mientras arranca
+          for i in 1 2 3 4; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 90 https://animanga-api-x7ot.onrender.com/actuator/health || true)
+            echo "Intento $i: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 20
+          done
+          echo "::warning::La API no respondió con 200"
