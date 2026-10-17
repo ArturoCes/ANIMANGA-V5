@@ -4,6 +4,16 @@
 
 Tienda online de manga desarrollada como **Trabajo de Fin de Grado** y reconstruida en 2026 para dejarla lista para portfolio.
 
+## Demo en vivo
+
+| | Enlace |
+|---|---|
+| 🛒 Tienda (Flutter web) | https://animanga-tienda.netlify.app |
+| 🛠️ Panel de administración (Angular) | https://animangav5.netlify.app |
+| ⚙️ API + documentación Swagger | https://animanga-api-x7ot.onrender.com/swagger-ui.html |
+
+Cuentas de prueba: `admin` / `Admin1234` (panel) y `demo` / `Demo1234` (tienda). La API está en el plan gratuito de Render: si lleva un rato sin uso, la primera carga tarda unos 30-50 segundos.
+
 Son tres aplicaciones que comparten una API REST:
 
 | Parte | Tecnología | Para quién |
