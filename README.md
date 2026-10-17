@@ -26,7 +26,7 @@ Son tres aplicaciones que comparten una API REST:
 - **Catálogo** con búsqueda por título o autor y filtros por categoría, editorial, precio máximo y disponibilidad. Seis ordenaciones y **scroll infinito**.
 - **Ficha** con volúmenes, stock en tiempo real, personajes y **reseñas** con estrellas y sello de *compra verificada*.
 - **Buscar por portada**: haz una foto a un tomo (o usa una captura) desde el buscador y la app te dice qué manga es y qué tomo. La API compara la imagen con todas las portadas usando un hash perceptual y un histograma de color; tolera fondos, márgenes, giros y fotos algo torcidas. Es pública pero limitada a 10 búsquedas por minuto.
-- **Leer avance**: lector de las primeras páginas de un tomo con miniaturas, zoom (pellizcar o doble toque), flechas y teclado, y una página final para añadirlo al carrito. Las páginas de ejemplo están generadas por código, no son páginas reales.
+- **Leer avance como un tomo real**: la página se levanta y gira sobre el lomo con sombra (arrastrando o tocando el borde), orden de lectura japonés (derecha a izquierda) u occidental, doble página en pantallas anchas, zoom, miniaturas y teclado; al final, botón para añadir el tomo al carrito. Las páginas de ejemplo están generadas por código, no son páginas reales.
 - **Carrito** y **pago**: dirección de envío, tarjeta validada con el algoritmo de Luhn (pasarela simulada) y confirmación con número de pedido.
 - **Mis pedidos** con el seguimiento del estado. Se puede cancelar mientras no se haya enviado.
 - **Cuenta**:
