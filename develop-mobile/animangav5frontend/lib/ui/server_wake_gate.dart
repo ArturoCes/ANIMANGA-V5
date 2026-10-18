@@ -109,14 +109,15 @@ class _WakingCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   'Esta demo está en un servidor gratuito que se duerme cuando nadie la usa. '
-                  'La primera vez tarda hasta un minuto en arrancar; después va normal.',
+                  'Al arrancar tarda entre 1 y 3 minutos; después va normal.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(color: scheme.outline, height: 1.45),
                 ),
                 const SizedBox(height: 20),
                 ClipRRect(borderRadius: BorderRadius.circular(99), child: const LinearProgressIndicator(minHeight: 5)),
                 const SizedBox(height: 10),
-                Text('$seconds s', style: theme.textTheme.bodySmall?.copyWith(color: scheme.outline)),
+                Text(seconds >= 60 ? '$seconds s · Sigue arrancando, ya casi está…' : '$seconds s',
+                    textAlign: TextAlign.center, style: theme.textTheme.bodySmall?.copyWith(color: scheme.outline)),
               ],
             ),
           ),

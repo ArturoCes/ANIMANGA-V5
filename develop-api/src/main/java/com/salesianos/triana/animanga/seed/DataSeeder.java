@@ -68,6 +68,7 @@ public class DataSeeder implements ApplicationRunner {
     };
 
     private final AppProperties props;
+    private final SeedHealthIndicator seedHealth;
     private final JsonMapper jsonMapper;
     private final PasswordEncoder passwordEncoder;
     private final StorageService storage;
@@ -82,6 +83,15 @@ public class DataSeeder implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) throws IOException {
+        try {
+            seed();
+        } finally {
+            // Aunque falle, la API no debe quedarse "no lista" para siempre
+            seedHealth.markReady();
+        }
+    }
+
+    private void seed() throws IOException {
         if (!props.seed().enabled()) return;
         copyImages();
         if (mangas.count() > 0) return;

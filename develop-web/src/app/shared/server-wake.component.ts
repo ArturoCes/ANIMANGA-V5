@@ -21,10 +21,12 @@ import { API } from '../core/api';
             <h2 id="wake-title">Despertando el servidor…</h2>
             <p>
               Esta demo está en un servidor gratuito que se duerme cuando nadie la usa.
-              La primera vez tarda <strong>hasta un minuto</strong> en arrancar; después va normal.
+              Al arrancar tarda <strong>entre 1 y 3 minutos</strong>; después va normal.
             </p>
             <mat-progress-bar mode="indeterminate" />
-            <p class="wake-time">{{ seconds() }} s</p>
+            <p class="wake-time">
+              {{ seconds() }} s<ng-container *ngIf="seconds() >= 60"> · Sigue arrancando, ya casi está…</ng-container>
+            </p>
           </ng-container>
           <ng-template #ready>
             <mat-icon class="wake-icon ok">check_circle</mat-icon>
